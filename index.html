@@ -506,7 +506,7 @@
             <div class="auto-overtime-box">
               <span>자동 계산 야근</span>
               <strong id="dailyOvertimePreview">0시간</strong>
-              <small id="dailyOvertimeRule">19:00~22:00 · 1시간 단위 · 최대 3시간</small>
+              <small id="dailyOvertimeRule">20:00=1h · 21:00=2h · 22:00=3h</small>
             </div>
           </div>
 
@@ -1129,28 +1129,24 @@ function parseTimeMinutes(value){
 }
 
 function calculateOvertimeHours(startTime,endTime){
-  const start=parseTimeMinutes(startTime);
-  let end=parseTimeMinutes(endTime);
-  if(start===null || end===null) return 0;
+  // 회사 야근 인정은 '퇴근시간'만으로 계산한다.
+  // 출근시간이 비어 있어도 퇴근시간이 있으면 정상 계산된다.
+  const end=parseTimeMinutes(endTime);
+  if(end===null) return 0;
 
-  // 자정 이후 퇴근 표기 대응
-  if(end < start) end += 24*60;
-
-  // 회사 규칙:
-  // 18:00 정시 퇴근
-  // 18:00~19:00 저녁시간(미산정)
-  // 19:00 이후부터 22:00까지만 인정
-  // 1시간 미만 단위는 버림
+  // 회사 규칙
+  // 18:00 정시퇴근
+  // 18:00~19:00 저녁시간 제외
+  // 19:00~22:00만 인정
+  // 완료된 1시간 단위만 인정
   // 하루 최대 3시간
-  const overtimeStart=19*60; // 19:00
-  const overtimeCutoff=22*60; // 22:00
+  const overtimeStart=19*60;   // 19:00
+  const overtimeCutoff=22*60;  // 22:00
 
   const recognizedEnd=Math.min(end,overtimeCutoff);
   const eligibleMinutes=Math.max(0,recognizedEnd-overtimeStart);
 
-  // 0.5시간 등 분 단위는 인정하지 않고 완료된 정수 시간만 인정
-  const wholeHours=Math.floor(eligibleMinutes/60);
-  return Math.min(3,wholeHours);
+  return Math.min(3,Math.floor(eligibleMinutes/60));
 }
 
 function formatHours(hours){
@@ -1216,7 +1212,7 @@ function updateDailyOvertimePreview(){
   const mini=$("dailyOvertimeMini");
 
   if(preview) preview.textContent=`${formatHours(hours)}시간`;
-  if(rule) rule.textContent="19:00~22:00 · 1시간 단위 · 최대 3시간";
+  if(rule) rule.textContent="20:00=1h · 21:00=2h · 22:00=3h";
   if(mini) mini.textContent=`자동 야근 ${formatHours(hours)}h`;
   return hours;
 }
@@ -1382,6 +1378,7 @@ function renderDailyRows(members, logs, editableUserId){
             <label style="text-align:left;margin-top:9px">퇴근</label>
             <input id="daily_end_time" type="time" value="${escapeHtml(log.end_time||"")}" />
             <div class="auto-ot-mini" id="dailyOvertimeMini">자동 야근 ${formatHours(log.overtime_hours||0)}h</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:5px">퇴근시간 입력 즉시 자동 계산</div>
           `;
         }else{
           tdTime.innerHTML=`
@@ -1402,8 +1399,14 @@ function renderDailyRows(members, logs, editableUserId){
   if(editableUserId){
     const startInput=$("daily_start_time");
     const endInput=$("daily_end_time");
-    if(startInput) startInput.addEventListener("input",updateDailyOvertimePreview);
-    if(endInput) endInput.addEventListener("input",updateDailyOvertimePreview);
+    if(startInput){
+      startInput.addEventListener("input",updateDailyOvertimePreview);
+      startInput.addEventListener("change",updateDailyOvertimePreview);
+    }
+    if(endInput){
+      endInput.addEventListener("input",updateDailyOvertimePreview);
+      endInput.addEventListener("change",updateDailyOvertimePreview);
+    }
     updateDailyOvertimePreview();
   }
 }
@@ -1502,7 +1505,7 @@ async function renderDailyLogPage(){
 
   const currentSummary=getMyDailySummary(dailyLogDate);
   if($("dailyWorkStatus")) $("dailyWorkStatus").value=currentSummary.work_status||"정상근무";
-  if($("dailyOvertimeRule")) $("dailyOvertimeRule").textContent="19:00~22:00 · 1시간 단위 · 최대 3시간";
+  if($("dailyOvertimeRule")) $("dailyOvertimeRule").textContent="20:00=1h · 21:00=2h · 22:00=3h";
 
   if(teamCloud.configured && teamCloud.user){
     await syncMyCloudProfile();
@@ -1521,6 +1524,7 @@ async function saveMyDailyLog(){
   const startTime=$("daily_start_time")?.value||null;
   const endTime=$("daily_end_time")?.value||null;
   const overtimeHours=calculateOvertimeHours(startTime,endTime);
+  updateDailyOvertimePreview();
 
   const payload={
     morning:$("daily_morning")?.value.trim()||"",
@@ -1556,7 +1560,7 @@ async function saveMyDailyLog(){
     renderSummary();
     renderPayBreakdown();
     renderLeavePage();
-    setDailyMessage(`내 업무일지를 저장했어. 자동 계산 야근은 ${formatHours(overtimeHours)}시간이야.`);
+    setDailyMessage(`내 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
     await loadCloudDaily();
   }else{
     data.dailyLogs=data.dailyLogs||{};
@@ -1569,7 +1573,7 @@ async function saveMyDailyLog(){
     renderSummary();
     renderPayBreakdown();
     renderLeavePage();
-    setDailyMessage(`이 브라우저에 업무일지를 저장했어. 자동 계산 야근은 ${formatHours(overtimeHours)}시간이야.`);
+    setDailyMessage(`이 브라우저에 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
   }
 }
 
