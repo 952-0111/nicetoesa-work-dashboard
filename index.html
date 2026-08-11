@@ -406,6 +406,69 @@
     color:#2b86bc;font-size:10px;font-weight:900
   }
 
+
+  .weekly-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    margin-bottom:16px;flex-wrap:wrap
+  }
+  .weekly-date-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .weekly-date-label{
+    min-width:220px;text-align:center;font-size:17px;font-weight:900
+  }
+  .weekly-sheet-wrap{overflow-x:auto}
+  .weekly-sheet{
+    width:100%;min-width:1180px;border-collapse:separate;border-spacing:0;
+    border:1px solid #cfd3d9;border-radius:14px;overflow:hidden;background:#fff
+  }
+  .weekly-sheet th,.weekly-sheet td{
+    border-right:1px solid #d9dde2;border-bottom:1px solid #d9dde2;
+    padding:9px;vertical-align:top
+  }
+  .weekly-sheet th:last-child,.weekly-sheet td:last-child{border-right:0}
+  .weekly-sheet tr:last-child td{border-bottom:0}
+  .weekly-sheet thead th{
+    background:#f3f5f7;text-align:center;font-size:11px;font-weight:900;
+    vertical-align:middle
+  }
+  .weekly-member-cell{
+    width:135px;min-width:135px;background:#fafbfc;text-align:center;
+    vertical-align:middle !important
+  }
+  .weekly-member-title{font-size:13px;font-weight:900;color:#2f343a}
+  .weekly-member-rank{
+    display:inline-block;margin-top:5px;padding:4px 7px;border-radius:7px;
+    background:#eef7fc;color:#4c9dcc;font-size:10px;font-weight:900
+  }
+  .weekly-day-cell{
+    min-width:145px;width:145px;background:#fff;font-size:10px;line-height:1.48
+  }
+  .weekly-day-cell.weekend{background:#fbfbfc}
+  .weekly-day-cell.empty{color:#b1b6bd;text-align:center;vertical-align:middle}
+  .weekly-log-section{margin-bottom:7px}
+  .weekly-log-section:last-child{margin-bottom:0}
+  .weekly-log-label{
+    display:inline-block;margin-bottom:3px;padding:2px 5px;border-radius:5px;
+    font-size:9px;font-weight:900;background:#f1f4f7;color:#626a73
+  }
+  .weekly-log-label.ot{background:#fff3e7;color:#ad6723}
+  .weekly-log-text{white-space:pre-wrap;color:#424850}
+  .weekly-time{
+    margin-top:7px;padding-top:6px;border-top:1px dashed #e2e5e9;
+    color:#7c838b;font-size:9px
+  }
+  .weekly-status{
+    display:inline-block;margin-top:5px;padding:3px 6px;border-radius:6px;
+    background:#f4f1ff;color:#7561b6;font-size:9px;font-weight:900
+  }
+  .weekly-summary{
+    display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px
+  }
+  .weekly-summary-chip{
+    padding:7px 10px;border-radius:10px;background:#f7f8fa;border:1px solid var(--line);
+    font-size:11px;color:#555d66
+  }
+  .weekly-summary-chip strong{color:#2f343a}
+
   footer{margin:24px 0 4px;color:var(--muted);font-size:11px;text-align:center}
   @media(max-width:1050px){
     .cards{grid-template-columns:repeat(3,1fr)}
@@ -456,6 +519,7 @@
     <button class="top-tab active" data-page="annualPage">연간일정표</button>
     <button class="top-tab" data-page="schedulePage">월간일정표</button>
     <button class="top-tab" data-page="dailyLogPage">일일업무일지</button>
+    <button class="top-tab" data-page="weeklyLogPage">주간업무일지</button>
     <button class="top-tab" data-page="salaryPage">월급</button>
     <button class="top-tab" data-page="leavePage">연차</button>
   </nav>
@@ -595,6 +659,45 @@
             <button class="btn primary" id="saveDailyLog">내 업무일지 저장</button>
           </div>
           <div class="daily-message" id="dailyMessage"></div>
+        </div>
+      </section>
+    </section>
+
+
+    <section class="page-view" id="weeklyLogPage">
+      <div class="weekly-toolbar">
+        <div>
+          <h2 style="margin:0;font-size:22px">주간업무일지</h2>
+          <p style="margin:4px 0 0;color:var(--muted);font-size:13px">
+            팀원들의 일일업무일지를 한 주 단위로 모아서 봐. 직급이 높은 순서대로 정렬돼.
+          </p>
+        </div>
+        <div class="weekly-date-nav">
+          <button class="icon-btn" id="prevWeeklyDate">←</button>
+          <div class="weekly-date-label" id="weeklyDateLabel"></div>
+          <button class="icon-btn" id="nextWeeklyDate">→</button>
+          <button class="icon-btn" id="thisWeekBtn">이번주</button>
+        </div>
+      </div>
+
+      <div class="sync-panel">
+        <div class="sync-status">
+          <span class="sync-dot" id="weeklySyncDot"></span>
+          <span id="weeklySyncStatus">팀 연동 확인 중</span>
+        </div>
+      </div>
+
+      <div class="weekly-summary" id="weeklySummary"></div>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="weekly-sheet-wrap">
+            <table class="weekly-sheet">
+              <thead id="weeklyLogHead"></thead>
+              <tbody id="weeklyLogBody"></tbody>
+            </table>
+          </div>
+          <div class="daily-message" id="weeklyMessage"></div>
         </div>
       </section>
     </section>
@@ -799,6 +902,24 @@
           <input id="profileCompanyName" type="text" maxlength="50" placeholder="예: OO건축사사무소" />
         </div>
         <div class="field">
+          <label for="profileJobTitle">직급</label>
+          <select id="profileJobTitle">
+            <option value="">선택 안 함</option>
+            <option value="대표">대표</option>
+            <option value="소장">소장</option>
+            <option value="이사">이사</option>
+            <option value="부장">부장</option>
+            <option value="차장">차장</option>
+            <option value="과장">과장</option>
+            <option value="대리">대리</option>
+            <option value="주임">주임</option>
+            <option value="기사">기사</option>
+            <option value="사원">사원</option>
+            <option value="인턴">인턴</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="field">
           <label for="profileAnnualLeave">올해 총 연차</label>
           <input id="profileAnnualLeave" type="number" min="0" step="0.5" placeholder="예: 15" />
         </div>
@@ -813,9 +934,9 @@
       </div>
 
       <div class="privacy-box">
-        같은 링크를 받은 다른 사람은 자신의 브라우저에 별도로 저장되므로 네 데이터를 볼 수 없어.
-        단, 같은 PC의 같은 브라우저 프로필을 여러 사람이 함께 사용하면 같은 저장공간을 공유할 수 있어.
-        다른 기기와 자동 동기화되지는 않으므로 필요하면 백업 파일을 이용해.
+        급여·연차 등 개인 설정은 현재 브라우저에 저장돼. 팀 연동을 사용하는 경우 이름·직급과 업무일지는
+        팀 업무일지 표시를 위해 공용 데이터베이스에 저장될 수 있어. 다른 기기에서는 팀 계정으로 로그인해야
+        공용 업무일지를 볼 수 있어.
       </div>
 
       <div class="modal-actions">
@@ -842,6 +963,7 @@ const OLD_STORAGE_KEY = "myCompanyDashboard_v1";
 const defaultSettings = {
   userName:"",
   companyName:"",
+  jobTitle:"",
   onboardingDone:false,
   basicSalary:0,
   technicalAllowance:0,
@@ -958,7 +1080,10 @@ let teamCloud = {
   myLoggedDates:new Set(),
   myOvertimeByDate:new Map(),
   myWorkStatusByDate:new Map(),
-  channel:null
+  channel:null,
+  weeklyChannel:null,
+  weeklyMembers:[],
+  weeklyLogs:[]
 };
 
 const $ = (id) => document.getElementById(id);
@@ -1377,6 +1502,36 @@ async function loadMyLoggedDates(year=viewDate.getFullYear()){
 }
 
 
+
+const jobTitleRankMap = {
+  "대표":0,
+  "소장":10,
+  "이사":20,
+  "부장":30,
+  "차장":40,
+  "과장":50,
+  "대리":60,
+  "주임":70,
+  "기사":80,
+  "사원":90,
+  "인턴":100,
+  "기타":900,
+  "":999
+};
+
+function jobTitleSortOrder(title){
+  return jobTitleRankMap[String(title||"").trim()] ?? 950;
+}
+
+function sortTeamMembers(members){
+  return [...(members||[])].sort((a,b)=>{
+    const ar=Number(a.sort_order ?? jobTitleSortOrder(a.job_title));
+    const br=Number(b.sort_order ?? jobTitleSortOrder(b.job_title));
+    if(ar!==br) return ar-br;
+    return String(a.display_name||"").localeCompare(String(b.display_name||""),"ko");
+  });
+}
+
 function escapeHtml(value=""){
   return String(value).replace(/[&<>"']/g, ch=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -1414,7 +1569,9 @@ function openDailyLog(key){
 function localDailyMember(){
   return {
     user_id:"local",
-    display_name:(data.settings.userName||"내 업무").trim() || "내 업무"
+    display_name:(data.settings.userName||"내 업무").trim() || "내 업무",
+    job_title:(data.settings.jobTitle||"").trim(),
+    sort_order:jobTitleSortOrder(data.settings.jobTitle)
   };
 }
 
@@ -1454,7 +1611,11 @@ function renderDailyRows(members, logs, editableUserId){
         const tdName=document.createElement("td");
         tdName.className="daily-member";
         tdName.rowSpan=3;
-        tdName.innerHTML=`${escapeHtml(member.display_name||"이름 미설정")}${editable?'<div class="daily-own-label">내 업무</div>':""}`;
+        tdName.innerHTML=`
+          ${escapeHtml(member.display_name||"이름 미설정")}
+          ${member.job_title?`<div style="margin-top:4px;font-size:9px;color:var(--muted)">${escapeHtml(member.job_title)}</div>`:""}
+          ${editable?'<div class="daily-own-label">내 업무</div>':""}
+        `;
         tr.appendChild(tdName);
       }
 
@@ -1555,9 +1716,12 @@ function updateSyncUi(){
 async function syncMyCloudProfile(){
   if(!teamCloud.client || !teamCloud.user) return;
   const display=(data.settings.userName||"").trim() || (teamCloud.user.email||"팀원").split("@")[0];
+  const title=(data.settings.jobTitle||"").trim();
   const {error}=await teamCloud.client.from("profiles").upsert({
     user_id:teamCloud.user.id,
-    display_name:display
+    display_name:display,
+    job_title:title,
+    sort_order:jobTitleSortOrder(title)
   },{onConflict:"user_id"});
   if(error) console.error(error);
 }
@@ -1566,7 +1730,7 @@ async function loadCloudDaily(){
   if(!teamCloud.client || !teamCloud.user) return;
   setDailyMessage("팀 업무일지를 불러오는 중...");
   const [{data:members,error:memberError},{data:logs,error:logError}] = await Promise.all([
-    teamCloud.client.from("profiles").select("user_id,display_name,sort_order").order("sort_order",{ascending:true}).order("display_name",{ascending:true}),
+    teamCloud.client.from("profiles").select("user_id,display_name,job_title,sort_order").order("sort_order",{ascending:true}).order("display_name",{ascending:true}),
     teamCloud.client.from("daily_logs").select("user_id,work_date,morning,afternoon,overtime,start_time,end_time,overtime_hours,work_status,updated_at").eq("work_date",dailyLogDate)
   ]);
 
@@ -1575,7 +1739,7 @@ async function loadCloudDaily(){
     setDailyMessage("팀 업무일지를 불러오지 못했어. Supabase 설정과 권한을 확인해줘.",true);
     return;
   }
-  teamCloud.members=members||[];
+  teamCloud.members=sortTeamMembers(members||[]);
   teamCloud.logs=logs||[];
   renderDailyRows(teamCloud.members,teamCloud.logs,teamCloud.user.id);
   const mine=teamCloud.logs.find(x=>x.user_id===teamCloud.user.id);
@@ -1692,6 +1856,255 @@ async function saveMyDailyLog(){
   }
 }
 
+
+function startOfWeek(dateValue){
+  const d=new Date(dateValue);
+  d.setHours(0,0,0,0);
+  const offset=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-offset);
+  return d;
+}
+
+let weeklyAnchorDate=startOfWeek(new Date());
+
+function weeklyDateRange(){
+  const start=startOfWeek(weeklyAnchorDate);
+  const end=new Date(start);
+  end.setDate(start.getDate()+6);
+  return {start,end};
+}
+
+function weeklyRangeLabel(){
+  const {start,end}=weeklyDateRange();
+  return `${start.getFullYear()}년 ${start.getMonth()+1}월 ${start.getDate()}일 ~ ${end.getMonth()+1}월 ${end.getDate()}일`;
+}
+
+function weeklyDayHeader(d){
+  const names=["일","월","화","수","목","금","토"];
+  return `${d.getMonth()+1}/${d.getDate()} (${names[d.getDay()]})`;
+}
+
+function weeklyLogCellHtml(log){
+  if(!log){
+    return '<span style="color:#b7bcc2">-</span>';
+  }
+
+  const parts=[];
+  if(log.morning){
+    parts.push(`<div class="weekly-log-section"><span class="weekly-log-label">오전</span><div class="weekly-log-text">${escapeHtml(log.morning)}</div></div>`);
+  }
+  if(log.afternoon){
+    parts.push(`<div class="weekly-log-section"><span class="weekly-log-label">오후</span><div class="weekly-log-text">${escapeHtml(log.afternoon)}</div></div>`);
+  }
+  if(log.overtime){
+    parts.push(`<div class="weekly-log-section"><span class="weekly-log-label ot">야근</span><div class="weekly-log-text">${escapeHtml(log.overtime)}</div></div>`);
+  }
+
+  const timeBits=[];
+  if(log.start_time) timeBits.push(`출근 ${escapeHtml(log.start_time)}`);
+  if(log.end_time) timeBits.push(`퇴근 ${escapeHtml(log.end_time)}`);
+  if(Number(log.overtime_hours)>0) timeBits.push(`인정야근 ${formatHours(log.overtime_hours)}h`);
+
+  if(timeBits.length){
+    parts.push(`<div class="weekly-time">${timeBits.join(" · ")}</div>`);
+  }
+
+  if(log.work_status && log.work_status!=="정상근무"){
+    const status=log.work_status==="연차"?"하루 연차":log.work_status;
+    parts.push(`<span class="weekly-status">${escapeHtml(status)}</span>`);
+  }
+
+  return parts.length ? parts.join("") : '<span style="color:#b7bcc2">업무내용 없음</span>';
+}
+
+function setWeeklyMessage(msg,isError=false){
+  const el=$("weeklyMessage");
+  if(!el) return;
+  el.textContent=msg||"";
+  el.style.color=isError ? "var(--red)" : "var(--muted)";
+}
+
+function updateWeeklySyncUi(){
+  const dot=$("weeklySyncDot");
+  const text=$("weeklySyncStatus");
+  if(!dot||!text) return;
+
+  if(!teamCloud.configured){
+    dot.className="sync-dot wait";
+    text.textContent="팀 연동 전 · 현재는 내 업무일지만 표시";
+  }else if(teamCloud.user){
+    dot.className="sync-dot on";
+    text.textContent=`팀 연동됨 · ${teamCloud.user.email}`;
+  }else{
+    dot.className="sync-dot wait";
+    text.textContent="팀 계정으로 로그인하면 4명의 업무일지를 함께 볼 수 있어";
+  }
+}
+
+function renderWeeklySheet(members,logs){
+  const head=$("weeklyLogHead");
+  const body=$("weeklyLogBody");
+  if(!head||!body) return;
+
+  const {start}=weeklyDateRange();
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(start);
+    d.setDate(start.getDate()+i);
+    days.push(d);
+  }
+
+  head.innerHTML=`
+    <tr>
+      <th style="width:135px">직급 · 성명</th>
+      ${days.map(d=>`<th>${weeklyDayHeader(d)}</th>`).join("")}
+    </tr>
+  `;
+
+  body.innerHTML="";
+  const sorted=sortTeamMembers(members);
+
+  if(!sorted.length){
+    body.innerHTML='<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--muted)">표시할 팀원이 없어.</td></tr>';
+    return;
+  }
+
+  sorted.forEach(member=>{
+    const tr=document.createElement("tr");
+
+    const nameTd=document.createElement("td");
+    nameTd.className="weekly-member-cell";
+    nameTd.innerHTML=`
+      <div class="weekly-member-title">${escapeHtml(member.display_name||"이름 미설정")}</div>
+      <div class="weekly-member-rank">${escapeHtml(member.job_title||"직급 미설정")}</div>
+    `;
+    tr.appendChild(nameTd);
+
+    days.forEach(d=>{
+      const key=dateKey(d);
+      const log=logs.find(x=>x.user_id===member.user_id && x.work_date===key);
+      const td=document.createElement("td");
+      td.className="weekly-day-cell";
+      if(d.getDay()===0||d.getDay()===6) td.classList.add("weekend");
+      if(!log) td.classList.add("empty");
+      td.innerHTML=weeklyLogCellHtml(log);
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+
+  const summary=$("weeklySummary");
+  if(summary){
+    const written=logs.filter(log=>log.morning||log.afternoon||log.overtime||log.start_time||log.end_time).length;
+    const totalOt=logs.reduce((sum,log)=>sum+Number(log.overtime_hours||0),0);
+    summary.innerHTML=`
+      <div class="weekly-summary-chip">팀원 <strong>${sorted.length}명</strong></div>
+      <div class="weekly-summary-chip">작성된 일지 <strong>${written}건</strong></div>
+      <div class="weekly-summary-chip">팀 인정야근 합계 <strong>${formatHours(totalOt)}시간</strong></div>
+    `;
+  }
+}
+
+function localWeeklyLogs(){
+  const {start,end}=weeklyDateRange();
+  const rows=[];
+  Object.entries(data.dailyLogs||{}).forEach(([date,log])=>{
+    const d=new Date(date+"T00:00:00");
+    if(d>=start && d<=end){
+      rows.push({user_id:"local",work_date:date,...log});
+    }
+  });
+  return rows;
+}
+
+async function loadCloudWeekly(){
+  if(!teamCloud.client || !teamCloud.user) return;
+
+  const {start,end}=weeklyDateRange();
+  const from=dateKey(start);
+  const to=dateKey(end);
+  setWeeklyMessage("주간업무일지를 불러오는 중...");
+
+  const [{data:members,error:memberError},{data:logs,error:logError}] = await Promise.all([
+    teamCloud.client
+      .from("profiles")
+      .select("user_id,display_name,job_title,sort_order")
+      .order("sort_order",{ascending:true})
+      .order("display_name",{ascending:true}),
+    teamCloud.client
+      .from("daily_logs")
+      .select("user_id,work_date,morning,afternoon,overtime,start_time,end_time,overtime_hours,work_status,updated_at")
+      .gte("work_date",from)
+      .lte("work_date",to)
+  ]);
+
+  if(memberError || logError){
+    console.error(memberError||logError);
+    setWeeklyMessage("주간업무일지를 불러오지 못했어. Supabase 설정을 확인해줘.",true);
+    return;
+  }
+
+  teamCloud.weeklyMembers=sortTeamMembers(members||[]);
+  teamCloud.weeklyLogs=logs||[];
+  renderWeeklySheet(teamCloud.weeklyMembers,teamCloud.weeklyLogs);
+  setWeeklyMessage(`${weeklyRangeLabel()} · 직급순으로 표시 중`);
+  subscribeWeeklyRealtime();
+}
+
+function subscribeWeeklyRealtime(){
+  if(!teamCloud.client || !teamCloud.user) return;
+
+  if(teamCloud.weeklyChannel){
+    teamCloud.client.removeChannel(teamCloud.weeklyChannel);
+    teamCloud.weeklyChannel=null;
+  }
+
+  const {start,end}=weeklyDateRange();
+  const from=dateKey(start);
+  const to=dateKey(end);
+
+  teamCloud.weeklyChannel=teamCloud.client
+    .channel(`weekly-${from}`)
+    .on("postgres_changes",{
+      event:"*",
+      schema:"public",
+      table:"daily_logs"
+    },payload=>{
+      const workDate=payload?.new?.work_date || payload?.old?.work_date;
+      if(workDate && workDate>=from && workDate<=to){
+        loadCloudWeekly();
+      }
+    })
+    .on("postgres_changes",{
+      event:"*",
+      schema:"public",
+      table:"profiles"
+    },()=>loadCloudWeekly())
+    .subscribe();
+}
+
+async function renderWeeklyLogPage(){
+  const label=$("weeklyDateLabel");
+  if(!label) return;
+  label.textContent=weeklyRangeLabel();
+  updateWeeklySyncUi();
+
+  if(teamCloud.configured && teamCloud.user){
+    await syncMyCloudProfile();
+    await loadCloudWeekly();
+  }else{
+    const members=[localDailyMember()];
+    const logs=localWeeklyLogs();
+    renderWeeklySheet(members,logs);
+    setWeeklyMessage(
+      teamCloud.configured
+        ? "팀 계정 로그인 전에는 내 로컬 업무일지만 보여."
+        : "현재 로컬 모드라서 내 업무일지만 표시돼. 팀 연동 후 4명의 일지가 함께 보여."
+    );
+  }
+}
+
 async function initTeamCloud(){
   const cfg=window.TEAM_SYNC_CONFIG||{};
   const url=(cfg.supabaseUrl||"").trim();
@@ -1735,10 +2148,12 @@ async function initTeamCloud(){
       renderAll();
     }
     if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
+    if($("weeklyLogPage")?.classList.contains("active")) renderWeeklyLogPage();
   });
 
   updateSyncUi();
   if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
+  if($("weeklyLogPage")?.classList.contains("active")) renderWeeklyLogPage();
 }
 
 
@@ -2095,6 +2510,8 @@ function renderAll(){
   renderLeavePage();
   const dailyPage=$("dailyLogPage");
   if(dailyPage?.classList.contains("active")) renderDailyLogPage();
+  const weeklyPage=$("weeklyLogPage");
+  if(weeklyPage?.classList.contains("active")) renderWeeklyLogPage();
 }
 
 $("saveLeaveSettings").addEventListener("click",()=>{
@@ -2130,6 +2547,24 @@ $("saveSettings").addEventListener("click",()=>{
 });
 
 
+
+
+$("prevWeeklyDate").addEventListener("click",()=>{
+  weeklyAnchorDate=startOfWeek(weeklyAnchorDate);
+  weeklyAnchorDate.setDate(weeklyAnchorDate.getDate()-7);
+  renderWeeklyLogPage();
+});
+
+$("nextWeeklyDate").addEventListener("click",()=>{
+  weeklyAnchorDate=startOfWeek(weeklyAnchorDate);
+  weeklyAnchorDate.setDate(weeklyAnchorDate.getDate()+7);
+  renderWeeklyLogPage();
+});
+
+$("thisWeekBtn").addEventListener("click",()=>{
+  weeklyAnchorDate=startOfWeek(new Date());
+  renderWeeklyLogPage();
+});
 
 $("prevDailyDate").addEventListener("click",()=>{
   const d=new Date(dailyLogDate+"T00:00:00");
@@ -2266,6 +2701,7 @@ function updateBranding(){
 function openProfileModal(firstVisit=false){
   $("profileUserName").value=data.settings.userName||"";
   $("profileCompanyName").value=data.settings.companyName||"";
+  $("profileJobTitle").value=data.settings.jobTitle||"";
   $("profileAnnualLeave").value=Number(data.settings.totalAnnualLeave||0) || "";
   $("profileBasicSalary").value=Number(data.settings.basicSalary||0) || "";
   $("profileOvertimeRate").value=Number(data.settings.hourlyOvertime||0) || "";
@@ -2288,6 +2724,7 @@ $("closeProfileModal").addEventListener("click",closeProfileModal);
 $("saveProfile").addEventListener("click",()=>{
   data.settings.userName=$("profileUserName").value.trim();
   data.settings.companyName=$("profileCompanyName").value.trim();
+  data.settings.jobTitle=$("profileJobTitle").value;
   data.settings.totalAnnualLeave=Number($("profileAnnualLeave").value||0);
   data.settings.basicSalary=Number($("profileBasicSalary").value||0);
   data.settings.hourlyOvertime=Number($("profileOvertimeRate").value||0);
@@ -2297,7 +2734,12 @@ $("saveProfile").addEventListener("click",()=>{
   renderAll();
   updateBranding();
   closeProfileModal();
-  if(teamCloud.user) syncMyCloudProfile().then(()=>renderDailyLogPage());
+  if(teamCloud.user){
+    syncMyCloudProfile().then(()=>{
+      if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
+      if($("weeklyLogPage")?.classList.contains("active")) renderWeeklyLogPage();
+    });
+  }
 });
 
 $("resetAllData").addEventListener("click",()=>{
@@ -2332,6 +2774,7 @@ document.querySelectorAll(".top-tab").forEach(btn=>{
     localStorage.setItem("myCompanyDashboard_lastPage",pageId);
 
     if(pageId==="dailyLogPage") await renderDailyLogPage();
+    if(pageId==="weeklyLogPage") await renderWeeklyLogPage();
 
     if(pageId==="salaryPage" && teamCloud.configured && teamCloud.user){
       const sourceMonth=payrollOvertimeMonth();
@@ -2343,7 +2786,7 @@ document.querySelectorAll(".top-tab").forEach(btn=>{
 });
 
 const lastPage=localStorage.getItem("myCompanyDashboard_lastPage");
-if(["annualPage","schedulePage","dailyLogPage","salaryPage","leavePage"].includes(lastPage)){
+if(["annualPage","schedulePage","dailyLogPage","weeklyLogPage","salaryPage","leavePage"].includes(lastPage)){
   const savedBtn=document.querySelector(`[data-page="${lastPage}"]`);
   if(savedBtn) savedBtn.click();
 }else{
