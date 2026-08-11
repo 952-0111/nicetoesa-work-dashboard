@@ -1,0 +1,2240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>회사생활 대시보드</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --panel:#ffffff;
+    --text:#15171a;
+    --muted:#71757d;
+    --line:#e6e8eb;
+    --accent:#2f6fed;
+    --accent-soft:#eaf1ff;
+    --red:#df3e46;
+    --red-soft:#fff0f1;
+    --blue:#2874d5;
+    --blue-soft:#edf5ff;
+    --green:#19784c;
+    --green-soft:#eaf7f0;
+    --orange:#a65318;
+    --orange-soft:#fff2e9;
+    --shadow:0 10px 30px rgba(20,25,35,.07);
+    --radius:20px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  button,input,textarea,select{font:inherit}
+  .app{max-width:1280px;margin:0 auto;padding:26px}
+  header{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:14px
+  }
+  .top-tabs{
+    display:flex;gap:6px;margin-bottom:22px;padding:5px;background:#eaecf0;border-radius:14px;width:max-content
+  }
+  .top-tab{
+    border:0;background:transparent;color:var(--muted);font-weight:900;
+    padding:10px 18px;border-radius:10px;cursor:pointer
+  }
+  .top-tab.active{
+    background:#fff;color:var(--text);box-shadow:0 3px 10px rgba(20,25,35,.08)
+  }
+  .page-view{display:none}
+  .page-view.active{display:block}
+  .page-heading{
+    display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px
+  }
+  .page-heading h2{margin:0;font-size:22px}
+  .page-heading p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  h1{font-size:28px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:14px}
+  .month-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .month-label{min-width:120px;text-align:center;font-weight:900}
+  .icon-btn,.btn{
+    border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;cursor:pointer
+  }
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.danger{color:var(--red)}
+  .grid{display:grid;grid-template-columns:1.35fr .9fr;gap:20px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-inner{padding:20px}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;box-shadow:var(--shadow)}
+  .card .label{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .card .value{font-size:20px;font-weight:900;letter-spacing:-.5px}
+  .card.highlight{background:var(--accent-soft);border-color:#d9e5ff}
+  .card.deduct{background:#fff7f7}
+  .card.pension{background:var(--green-soft);border-color:#d8eee3}
+  .section-title{font-size:16px;font-weight:900;margin:0 0 14px}
+  .section-subtitle{font-size:13px;font-weight:900;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  .calendar-scroll{overflow-x:auto;padding-bottom:3px}
+  .calendar-head,.calendar{
+    display:grid;
+    grid-template-columns:170px repeat(7,minmax(105px,1fr));
+    min-width:920px
+  }
+  .calendar-head div{font-size:12px;text-align:center;color:var(--muted);padding:7px 0;font-weight:800}
+  .calendar-head .memo-head{text-align:left;padding-left:10px;color:#867132}
+  .calendar-head .sat{color:var(--blue)}
+  .calendar-head .sun{color:var(--red)}
+  .day{
+    min-height:112px;border-top:1px solid var(--line);border-left:1px solid var(--line);
+    padding:9px;cursor:pointer;position:relative;background:#fff
+  }
+  .day:hover{background:#fafbfc}
+  .day.other{background:#fbfbfc}
+  .day.other .num{opacity:.42}
+  .day.today .num{background:var(--accent);color:#fff !important}
+  .day.saturday .num{color:var(--blue)}
+  .day.sunday .num,.day.holiday .num{color:var(--red)}
+  .day.holiday{background:linear-gradient(180deg,#fff 0%,#fffafa 100%)}
+  .num{
+    width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
+    font-size:12px;font-weight:900;position:relative
+  }
+  .day.has-daily-log .num::after{
+    content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);
+    width:5px;height:5px;border-radius:50%;background:#F2C94C;
+    box-shadow:0 0 0 1px rgba(242,201,76,.18)
+  }
+  .day.today.has-daily-log .num::after{
+    background:#F2C94C;bottom:-6px
+  }
+  .chip{font-size:10.5px;margin-top:6px;padding:5px 6px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip.ot{background:var(--orange-soft);color:var(--orange)}
+  .chip.note{background:var(--blue-soft);color:#275eae}
+  .chip.holiday{background:var(--red-soft);color:var(--red);font-weight:900}
+
+  .week-memo-cell{
+    min-height:112px;border-top:1px solid var(--line);padding:8px;background:#fffdf3
+  }
+  .week-memo-title{
+    font-size:10px;font-weight:900;color:#8a7430;margin-bottom:5px
+  }
+  .week-memo-input{
+    width:100%;height:76px;min-height:76px;padding:7px 8px;resize:none;
+    border:1px solid #eadc9f;border-radius:9px;background:#fffef8;
+    color:#565042;font-size:11px;line-height:1.45
+  }
+  .week-memo-input:focus{
+    border-color:#dfc75d;box-shadow:0 0 0 3px rgba(242,201,76,.18)
+  }
+  .payday-star{
+    position:absolute;right:8px;top:8px;color:#ef72a5;font-size:15px;
+    line-height:1;filter:drop-shadow(0 1px 0 rgba(239,114,165,.12))
+  }
+  .payday-chip{
+    background:#fff0f6;color:#d84b87;font-weight:900
+  }
+  .mini-day.payday::after{
+    content:"★";position:absolute;right:1px;top:-2px;color:#ef72a5;
+    font-size:7px;line-height:1
+  }
+  .salary-source-note{
+    margin-top:6px;color:var(--muted);font-size:11px;line-height:1.5
+  }
+
+  .side-stack{display:flex;flex-direction:column;gap:20px}
+  .field{margin-bottom:13px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
+  input,textarea,select{
+    width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 11px;background:#fff;color:var(--text);outline:none
+  }
+  input:focus,textarea:focus,select:focus{border-color:#9eb9f5;box-shadow:0 0 0 3px #edf3ff}
+  textarea{min-height:80px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .help{font-size:12px;line-height:1.65;color:var(--muted);margin-top:10px}
+  .records{margin-top:18px}
+  .record{
+    display:grid;grid-template-columns:110px 72px 1fr auto;gap:8px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);font-size:13px
+  }
+  .record .memo{color:#4b4f55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .record .money{font-weight:900}
+  .mini-btn{border:0;background:transparent;cursor:pointer;color:var(--red);padding:5px}
+  .settings-note{background:#f7f8fa;border-radius:12px;padding:11px;font-size:12px;color:var(--muted);line-height:1.6}
+  .holiday-note{background:var(--red-soft);color:#8c3035}
+  .backup{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .empty{padding:20px 0;color:var(--muted);font-size:13px}
+  .pay-summary{
+    display:grid;grid-template-columns:1fr auto;gap:7px 14px;
+    font-size:13px;padding:12px 0 0;margin-top:12px;border-top:1px dashed var(--line)
+  }
+  .pay-summary .amount{text-align:right;font-weight:800}
+  .pay-summary .total{font-size:15px;font-weight:900;padding-top:8px;margin-top:4px;border-top:1px solid var(--line)}
+  .pay-summary .net{color:var(--accent);font-size:16px}
+  .pension-box{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px
+  }
+  .pension-stat{background:#f7faf8;border-radius:12px;padding:11px}
+  .pension-stat span{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}
+  .pension-stat strong{font-size:13px}
+  .unsupported{
+    display:none;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#fff7e8;color:#8a5a13;font-size:12px
+  }
+
+  .annual-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px
+  }
+  .annual-year-nav{display:flex;align-items:center;gap:8px}
+  .annual-year-label{min-width:92px;text-align:center;font-size:20px;font-weight:900}
+  .annual-grid{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px
+  }
+  .mini-month{
+    background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:var(--shadow);cursor:pointer;transition:.15s ease
+  }
+  .mini-month:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,25,35,.10)}
+  .mini-month-title{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:9px
+  }
+  .mini-month-title strong{font-size:15px}
+  .mini-month-title span{font-size:10px;color:var(--muted)}
+  .mini-week,.mini-days{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:2px
+  }
+  .mini-week div{
+    text-align:center;font-size:9px;color:var(--muted);font-weight:900;padding-bottom:4px
+  }
+  .mini-week .sat{color:var(--blue)}
+  .mini-week .sun{color:var(--red)}
+  .mini-day{
+    position:relative;min-height:27px;display:grid;place-items:center;
+    border-radius:7px;font-size:10px;font-weight:700
+  }
+  .mini-day.other{opacity:.18}
+  .mini-day.sat{color:var(--blue)}
+  .mini-day.sun,.mini-day.holiday{color:var(--red)}
+  .mini-day.today{background:var(--accent);color:#fff !important;font-weight:900}
+  .mini-day.has-record::after{
+    content:"";position:absolute;bottom:2px;left:50%;width:4px;height:4px;
+    border-radius:50%;background:var(--accent);transform:translateX(-50%)
+  }
+  .mini-day.holiday.has-record::after{background:var(--red)}
+  .mini-day.has-daily-log::before{
+    content:"";position:absolute;bottom:2px;left:calc(50% + 5px);width:4px;height:4px;
+    border-radius:50%;background:#F2C94C;transform:translateX(-50%)
+  }
+  .mini-day.has-daily-log:not(.has-record)::before{left:50%}
+  .annual-legend{
+    display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:11px
+  }
+  .legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:5px}
+
+
+  .leave-summary-banner{
+    background:linear-gradient(135deg,#eef4ff 0%,#f7f9ff 100%);
+    border:1px solid #dce7ff;border-radius:20px;padding:22px;margin-bottom:18px
+  }
+  .leave-summary-banner .big{
+    font-size:22px;font-weight:900;line-height:1.5;letter-spacing:-.4px
+  }
+  .leave-summary-banner .big strong{color:var(--accent)}
+  .leave-summary-banner .small{margin-top:6px;color:var(--muted);font-size:12px}
+  .leave-cards{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px
+  }
+  .leave-card{
+    background:#fff;border:1px solid var(--line);border-radius:17px;padding:17px;box-shadow:var(--shadow)
+  }
+  .leave-card .label{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .leave-card .value{font-size:23px;font-weight:900}
+  .leave-card.remaining{background:var(--green-soft);border-color:#d7ece1}
+  .leave-progress{
+    width:100%;height:12px;background:#edf0f4;border-radius:999px;overflow:hidden;margin-top:14px
+  }
+  .leave-progress-bar{height:100%;background:var(--accent);border-radius:999px;width:0}
+  .leave-list-item{
+    display:grid;grid-template-columns:100px 100px 1fr 70px;gap:10px;align-items:center;
+    padding:12px 0;border-top:1px solid var(--line);font-size:13px
+  }
+  .leave-type-badge{
+    display:inline-block;padding:5px 8px;border-radius:8px;background:var(--accent-soft);
+    color:#275eae;font-size:11px;font-weight:900
+  }
+  .leave-days{text-align:right;font-weight:900}
+
+
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(14,18,25,.48);display:none;
+    align-items:center;justify-content:center;padding:20px;z-index:9999
+  }
+  .modal-backdrop.open{display:flex}
+  .modal{
+    width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;
+    border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.22);padding:24px
+  }
+  .modal h2{margin:0 0 7px;font-size:24px}
+  .modal .lead{margin:0 0 18px;color:var(--muted);font-size:13px;line-height:1.65}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .privacy-box{
+    margin:14px 0;padding:12px 14px;background:#f6f8fb;border:1px solid var(--line);
+    border-radius:13px;color:#5d626b;font-size:12px;line-height:1.65
+  }
+  .modal-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .danger-zone{
+    margin-top:18px;padding-top:16px;border-top:1px solid var(--line)
+  }
+  .danger-zone .title{font-size:12px;font-weight:900;color:var(--red);margin-bottom:7px}
+  .public-note{
+    max-width:820px;margin:14px auto 0;padding:10px 14px;border-radius:12px;
+    background:#f7f8fa;color:var(--muted);font-size:11px;line-height:1.6;text-align:center
+  }
+  @media(max-width:600px){
+    .modal-grid{grid-template-columns:1fr}
+  }
+
+
+  .daily-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap
+  }
+  .daily-date-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .daily-date-label{min-width:150px;text-align:center;font-size:18px;font-weight:900}
+  .sync-panel{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    background:#f8f9fb;border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin-bottom:14px
+  }
+  .sync-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}
+  .sync-dot{width:9px;height:9px;border-radius:50%;background:#aeb3bb}
+  .sync-dot.on{background:#2b9a62}
+  .sync-dot.wait{background:#d49425}
+  .auth-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .auth-controls input{width:230px}
+  .daily-sheet-wrap{overflow-x:auto}
+  .daily-sheet{
+    width:100%;min-width:860px;border-collapse:separate;border-spacing:0;
+    border:1px solid #cfd3d9;border-radius:14px;overflow:hidden;background:#fff
+  }
+  .daily-sheet th,.daily-sheet td{
+    border-right:1px solid #d9dde2;border-bottom:1px solid #d9dde2;
+    padding:9px;vertical-align:middle
+  }
+  .daily-sheet tr:last-child td{border-bottom:0}
+  .daily-sheet th:last-child,.daily-sheet td:last-child{border-right:0}
+  .daily-sheet thead th{
+    background:#f3f5f7;text-align:center;font-size:12px;font-weight:900
+  }
+  .daily-member{
+    width:110px;text-align:center;font-weight:900;background:#fafbfc
+  }
+  .daily-period{
+    width:70px;text-align:center;font-size:12px;font-weight:900;color:#555b63
+  }
+  .daily-content{min-width:420px}
+  .daily-time{width:155px;text-align:center;background:#fcfcfd}
+  .daily-textarea{
+    width:100%;min-height:75px;border:1px solid #e0e3e7;border-radius:9px;padding:9px;
+    resize:vertical;background:#fff;line-height:1.55
+  }
+  .daily-textarea:disabled{background:#f8f9fb;color:#484d54;border-color:#eceef1}
+  .daily-time input{padding:7px 8px}
+  .readonly-work{
+    min-height:52px;font-size:12px;line-height:1.6;color:#3f444b
+  }
+  .readonly-work ul{margin:0;padding-left:18px}
+  .readonly-work .none{color:#a0a5ac}
+  .daily-own-label{
+    display:inline-block;margin-top:5px;padding:3px 6px;border-radius:6px;background:var(--accent-soft);
+    color:#275eae;font-size:9px;font-weight:900
+  }
+  .daily-actions{
+    display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px
+  }
+  .daily-message{
+    margin-top:10px;font-size:12px;color:var(--muted);min-height:18px
+  }
+  .cloud-explain{
+    padding:14px;border-radius:14px;background:#fff9ed;border:1px solid #f0dfb8;
+    color:#73561c;font-size:12px;line-height:1.65;margin-bottom:14px
+  }
+  @media(max-width:600px){
+    .auth-controls input{width:100%}
+    .auth-controls{width:100%}
+    .daily-date-label{min-width:110px}
+  }
+
+
+  .daily-meta-bar{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+    margin-bottom:14px;padding:13px 14px;border:1px solid var(--line);
+    border-radius:14px;background:#fafbfc;flex-wrap:wrap
+  }
+  .auto-overtime-box{
+    min-width:210px;padding:10px 13px;border-radius:12px;background:#edf7ff;
+    border:1px solid #d4ebfb
+  }
+  .auto-overtime-box span{display:block;font-size:10px;color:#5e7f97;margin-bottom:4px}
+  .auto-overtime-box strong{display:block;font-size:19px;color:#2b86bc}
+  .auto-overtime-box small{display:block;margin-top:3px;color:#7794a7;font-size:10px}
+  .daily-time .auto-ot-mini{
+    margin-top:10px;padding:6px 7px;border-radius:8px;background:#edf7ff;
+    color:#2b86bc;font-size:10px;font-weight:900
+  }
+
+  footer{margin:24px 0 4px;color:var(--muted);font-size:11px;text-align:center}
+  @media(max-width:1050px){
+    .cards{grid-template-columns:repeat(3,1fr)}
+    .annual-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media(max-width:900px){
+    .grid{grid-template-columns:1fr !important}
+    .cards{grid-template-columns:repeat(2,1fr) !important}
+    .annual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:600px){
+    .app{padding:14px}
+    header{align-items:flex-start;flex-direction:column}
+    .cards{grid-template-columns:1fr 1fr}
+    .card .value{font-size:17px}
+    .day{min-height:86px;padding:5px}
+    .chip{font-size:8.5px;padding:3px 4px}
+    .record{grid-template-columns:82px 56px 1fr auto;font-size:11px}
+    .row,.row3{grid-template-columns:1fr}
+    .pension-box{grid-template-columns:1fr}
+    .annual-grid{grid-template-columns:1fr}
+    .annual-toolbar{align-items:flex-start;flex-direction:column}
+    .leave-cards{grid-template-columns:1fr}
+    .leave-list-item{grid-template-columns:78px 84px 1fr 52px;font-size:11px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1 id="appTitle">회사생활 대시보드</h1>
+      <div class="sub" id="appSubtitle">내 일정 · 팀 업무일지 · 야근 · 급여 · 연차를 한 곳에서 관리해.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="icon-btn" id="profileBtn">내 정보</button>
+      <div class="month-nav" id="monthNav" style="display:none">
+      <button class="icon-btn" id="prevMonth">←</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="icon-btn" id="nextMonth">→</button>
+      <button class="icon-btn" id="todayBtn">오늘</button>
+      </div>
+    </div>
+  </header>
+
+
+  <nav class="top-tabs" aria-label="주요 메뉴">
+    <button class="top-tab active" data-page="annualPage">연간일정표</button>
+    <button class="top-tab" data-page="schedulePage">월간일정표</button>
+    <button class="top-tab" data-page="dailyLogPage">일일업무일지</button>
+    <button class="top-tab" data-page="salaryPage">월급</button>
+    <button class="top-tab" data-page="leavePage">연차</button>
+  </nav>
+
+  <main>
+
+    <section class="page-view active" id="annualPage">
+      <div class="annual-toolbar">
+        <div>
+          <h2 style="margin:0;font-size:22px">연간일정표</h2>
+          <p style="margin:4px 0 0;color:var(--muted);font-size:13px">1월부터 12월까지 한 번에 확인해. 월을 누르면 월간일정표로 이동해.</p>
+        </div>
+        <div class="annual-year-nav">
+          <button class="icon-btn" id="prevYear">←</button>
+          <div class="annual-year-label" id="annualYearLabel"></div>
+          <button class="icon-btn" id="nextYear">→</button>
+          <button class="icon-btn" id="thisYearBtn">올해</button>
+        </div>
+      </div>
+
+      <div class="annual-grid" id="annualCalendar"></div>
+
+      <div class="annual-legend">
+        <span><span class="legend-dot" style="background:#F2C94C"></span>일일업무일지 작성 완료</span>
+        <span style="color:#ef72a5">★ 월급날</span>
+        <span style="color:var(--blue)">토요일</span>
+        <span style="color:var(--red)">일요일 · 공휴일</span>
+      </div>
+    </section>
+
+    <section class="page-view" id="schedulePage">
+      <div class="page-heading">
+        <div>
+          <h2>월간일정표</h2>
+          <p>월별 일정과 야근시간을 확인해. 날짜를 누르면 해당 날짜의 일일업무일지로 이동해.</p>
+        </div>
+      </div>
+
+      <section class="cards" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:560px">
+        <div class="card">
+          <div class="label">이번 달 야근시간</div>
+          <div class="value" id="otHoursOnly">0시간</div>
+        </div>
+        <div class="card highlight">
+          <div class="label">다음달 지급 예정 야근비</div>
+          <div class="value" id="otPayOnly">0원</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <h2 class="section-title">월간 캘린더</h2>
+          <div class="unsupported" id="unsupportedHoliday">
+            이 연도는 음력·대체공휴일 전체 데이터가 내장되어 있지 않아 고정일 공휴일만 표시될 수 있어.
+          </div>
+          <div class="calendar-scroll">
+            <div class="calendar-head">
+              <div class="memo-head">이번주 할일</div>
+              <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div><div class="sun">일</div>
+            </div>
+            <div class="calendar" id="calendar"></div>
+          </div>
+          <div class="help" style="margin-top:12px">
+            개나리색 점은 일일업무일지 작성 완료, 분홍색 ★은 월급날이야. 월급날이 토·일·공휴일이면 직전 평일로 자동 조정돼. 월요일 왼쪽의 주간메모는 입력 즉시 자동 저장돼. 야근은 19:00~22:00 사이의 완료된 1시간 단위만 인정하며 하루 최대 3시간으로 자동 계산돼.
+          </div>
+        </div>
+      </section>
+    </section>
+
+
+    <section class="page-view" id="dailyLogPage">
+      <div class="daily-toolbar">
+        <div>
+          <h2 style="margin:0;font-size:22px">일일업무일지</h2>
+          <p style="margin:4px 0 0;color:var(--muted);font-size:13px">각 팀원이 자기 업무를 입력하면 같은 날짜의 팀 업무일지에 함께 표시돼.</p>
+        </div>
+        <div class="daily-date-nav">
+          <button class="icon-btn" id="prevDailyDate">←</button>
+          <div class="daily-date-label" id="dailyDateLabel"></div>
+          <button class="icon-btn" id="nextDailyDate">→</button>
+          <button class="icon-btn" id="todayDailyDate">오늘</button>
+        </div>
+      </div>
+
+      <div class="sync-panel">
+        <div class="sync-status">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncStatusText">팀 연동 확인 중</span>
+        </div>
+        <div class="auth-controls" id="authControls">
+          <input id="teamEmail" type="email" placeholder="회사/개인 이메일" />
+          <button class="btn primary" id="sendMagicLink">로그인 링크 받기</button>
+          <button class="btn" id="signOutTeam" style="display:none">로그아웃</button>
+        </div>
+      </div>
+
+      <div class="cloud-explain" id="cloudExplain">
+        팀 연동을 설정하기 전에는 내 업무일지만 이 브라우저에 임시 저장돼.
+        Supabase 연동 후에는 4명이 각자의 컴퓨터에서 입력한 내용이 같은 날짜 화면에 자동으로 합쳐져.
+      </div>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="daily-meta-bar">
+            <div class="field" style="margin:0;min-width:220px">
+              <label for="dailyWorkStatus">근무 상태</label>
+              <select id="dailyWorkStatus">
+                <option value="정상근무">정상근무</option>
+                <option value="연차">하루 연차</option>
+                <option value="오전연차">오전연차</option>
+                <option value="오후연차">오후연차</option>
+              </select>
+            </div>
+            <div class="auto-overtime-box">
+              <span>자동 계산 야근</span>
+              <strong id="dailyOvertimePreview">0시간</strong>
+              <small id="dailyOvertimeRule">20:00=1h · 21:00=2h · 22:00=3h</small>
+            </div>
+          </div>
+
+          <div class="daily-sheet-wrap">
+            <table class="daily-sheet">
+              <thead>
+                <tr>
+                  <th style="width:110px">성명</th>
+                  <th style="width:70px">구분</th>
+                  <th>업무내용</th>
+                  <th style="width:155px">출·퇴근시간</th>
+                </tr>
+              </thead>
+              <tbody id="dailyLogBody"></tbody>
+            </table>
+          </div>
+
+          <div class="daily-actions">
+            <button class="btn" id="dailyToSchedule">월간일정표 보기</button>
+            <button class="btn primary" id="saveDailyLog">내 업무일지 저장</button>
+          </div>
+          <div class="daily-message" id="dailyMessage"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page-view" id="salaryPage">
+      <div class="page-heading">
+        <div>
+          <h2>월급</h2>
+          <p>지급항목, 공제금액, 야근비와 퇴직연금을 관리해.</p>
+        </div>
+      </div>
+
+      <section class="cards">
+        <div class="card">
+          <div class="label">월 지급항목 합계</div>
+          <div class="value" id="fixedPay">0원</div>
+        </div>
+        <div class="card">
+          <div class="label">전월 야근 / 이번달 지급 야근비</div>
+          <div class="value" id="otSummary">0h · 0원</div>
+        </div>
+        <div class="card deduct">
+          <div class="label">공제 합계</div>
+          <div class="value" id="deductionTotal">0원</div>
+        </div>
+        <div class="card highlight">
+          <div class="label">예상 실수령액</div>
+          <div class="value" id="netPay">0원</div>
+        </div>
+        <div class="card pension">
+          <div class="label">퇴직연금 월 적립</div>
+          <div class="value" id="pensionMonthly">0원</div>
+        </div>
+      </section>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <section class="panel">
+          <div class="panel-inner">
+            <h2 class="section-title">급여 · 수당 설정</h2>
+
+            <div class="section-subtitle" style="border-top:0;padding-top:0;margin-top:0">지급 항목</div>
+            <div class="row">
+              <div class="field"><label for="basicSalary">기본급</label><input id="basicSalary" type="number" min="0" step="1000" /></div>
+              <div class="field"><label for="technicalAllowance">기술수당</label><input id="technicalAllowance" type="number" min="0" step="1000" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="positionAllowance">직급수당</label><input id="positionAllowance" type="number" min="0" step="1000" /></div>
+              <div class="field"><label for="qualificationAllowance">자격수당</label><input id="qualificationAllowance" type="number" min="0" step="1000" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="serviceAllowance">근속수당</label><input id="serviceAllowance" type="number" min="0" step="1000" /></div>
+              <div class="field">
+                <label for="payDay">월급날 (매월)</label>
+                <input id="payDay" type="number" min="1" max="31" step="1" placeholder="예: 25" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="jobDevelopment">직무개발비</label><input id="jobDevelopment" type="number" min="0" step="1000" /></div>
+              <div class="field"><label for="transport">교통비 보조</label><input id="transport" type="number" min="0" step="1000" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="meal">식대</label><input id="meal" type="number" min="0" step="1000" /></div>
+              <div class="field"><label for="hourlyOvertime">야근 시급</label><input id="hourlyOvertime" type="number" min="0" step="100" /></div>
+            </div>
+            <div class="settings-note" style="margin-bottom:13px">
+              <strong>야근 인정 기준</strong><br>
+              18:00 정시 퇴근 · 18:00~19:00 저녁시간 제외 · 19:00~22:00만 인정 ·
+              1시간 단위로만 계산 · 하루 최대 3시간 인정
+            </div>
+            <div class="field">
+              <label for="monthlyCap">월 야근 인정 한도</label>
+              <input id="monthlyCap" type="number" min="0" step="1" placeholder="0 = 제한 없음" />
+            </div>
+
+            <div class="section-subtitle">공제 항목</div>
+            <div class="row">
+              <div class="field"><label for="incomeTax">소득세</label><input id="incomeTax" type="number" min="0" step="100" /></div>
+              <div class="field"><label for="localTax">주민세(지방소득세)</label><input id="localTax" type="number" min="0" step="100" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="employmentInsurance">고용보험</label><input id="employmentInsurance" type="number" min="0" step="100" /></div>
+              <div class="field"><label for="healthInsurance">건강보험</label><input id="healthInsurance" type="number" min="0" step="100" /></div>
+            </div>
+            <div class="row">
+              <div class="field"><label for="longTermCare">장기요양보험</label><input id="longTermCare" type="number" min="0" step="100" /></div>
+              <div class="field"><label for="nationalPension">국민연금</label><input id="nationalPension" type="number" min="0" step="100" /></div>
+            </div>
+            <div class="field"><label for="associationFee">사우회비</label><input id="associationFee" type="number" min="0" step="100" /></div>
+
+            <div class="section-subtitle">퇴직연금</div>
+            <div class="row3">
+              <div class="field">
+                <label for="pensionType">유형</label>
+                <select id="pensionType">
+                  <option value="미설정">미설정</option>
+                  <option value="DB형">DB형</option>
+                  <option value="DC형">DC형</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+              <div class="field"><label for="retirementMonthly">월 적립액</label><input id="retirementMonthly" type="number" min="0" step="1000" /></div>
+              <div class="field"><label for="retirementBalance">누적 적립액</label><input id="retirementBalance" type="number" min="0" step="1000" /></div>
+            </div>
+
+            <button class="btn primary" id="saveSettings">급여 설정 저장</button>
+
+            <div class="backup">
+              <button class="btn" id="exportBtn">백업 내보내기</button>
+              <button class="btn" id="importBtn">백업 불러오기</button>
+              <input id="importFile" type="file" accept=".json,application/json" hidden />
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-inner">
+            <h2 class="section-title" id="salaryMonthTitle">이번 달 급여 예상</h2>
+            <div class="pay-summary" id="payBreakdown"></div>
+            <div class="settings-note" style="margin-top:16px">
+              실수령 예상액 = 지급항목 합계 + 야근비 − 공제합계.<br>
+              공제액은 실제 급여명세서 금액을 직접 입력하는 방식이야.
+            </div>
+            <div class="settings-note holiday-note" style="margin-top:8px">
+              <span id="salaryOvertimeSourceNote">전월 일일업무일지의 야근시간이 이번 달 월급의 야근비로 반영돼.</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page-view" id="leavePage">
+      <div class="page-heading">
+        <div>
+          <h2>연차</h2>
+          <p>일일업무일지에 등록한 연차를 자동으로 합산해.</p>
+        </div>
+      </div>
+
+      <div class="leave-summary-banner">
+        <div class="big" id="leaveSentence">올해 연차 총 <strong>0일</strong> 중 <strong>0일</strong>을 썼고, 지금 <strong>0일</strong>이 남았어.</div>
+        <div class="small">하루 연차는 1일, 오전연차·오후연차는 각각 0.5일로 계산돼.</div>
+        <div class="leave-progress"><div class="leave-progress-bar" id="leaveProgressBar"></div></div>
+      </div>
+
+      <section class="leave-cards">
+        <div class="leave-card">
+          <div class="label">올해 총 연차</div>
+          <div class="value" id="leaveTotal">0일</div>
+        </div>
+        <div class="leave-card">
+          <div class="label">사용한 연차</div>
+          <div class="value" id="leaveUsed">0일</div>
+        </div>
+        <div class="leave-card remaining">
+          <div class="label">남은 연차</div>
+          <div class="value" id="leaveRemaining">0일</div>
+        </div>
+      </section>
+
+      <div class="grid" style="grid-template-columns:.65fr 1.35fr">
+        <section class="panel">
+          <div class="panel-inner">
+            <h2 class="section-title">연차 설정</h2>
+            <div class="field">
+              <label for="totalAnnualLeave">올해 부여받은 총 연차 (일)</label>
+              <input id="totalAnnualLeave" type="number" min="0" step="0.5" placeholder="예: 15" />
+            </div>
+            <button class="btn primary" id="saveLeaveSettings">연차 설정 저장</button>
+            <div class="settings-note" style="margin-top:12px">
+              총 연차 개수만 입력해두면 사용량은 일일업무일지의 근무 상태를 기준으로 자동 계산돼.
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-inner">
+            <h2 class="section-title"><span id="leaveYearLabel"></span> 연차 사용 내역</h2>
+            <div id="leaveHistory"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+  </main>
+
+
+  <div class="modal-backdrop" id="profileModal" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+      <h2 id="profileModalTitle">내 대시보드 시작하기</h2>
+      <p class="lead">
+        이 링크는 누구나 사용할 수 있어. 아래 정보는 이 사이트의 서버로 보내지지 않고
+        현재 사용하는 브라우저의 저장공간에만 저장돼.
+      </p>
+
+      <div class="modal-grid">
+        <div class="field">
+          <label for="profileUserName">이름 또는 별명</label>
+          <input id="profileUserName" type="text" maxlength="30" placeholder="예: 규원" />
+        </div>
+        <div class="field">
+          <label for="profileCompanyName">회사명 (선택)</label>
+          <input id="profileCompanyName" type="text" maxlength="50" placeholder="예: OO건축사사무소" />
+        </div>
+        <div class="field">
+          <label for="profileAnnualLeave">올해 총 연차</label>
+          <input id="profileAnnualLeave" type="number" min="0" step="0.5" placeholder="예: 15" />
+        </div>
+        <div class="field">
+          <label for="profileBasicSalary">월 기본급</label>
+          <input id="profileBasicSalary" type="number" min="0" step="1000" placeholder="예: 2500000" />
+        </div>
+        <div class="field">
+          <label for="profileOvertimeRate">야근 시급</label>
+          <input id="profileOvertimeRate" type="number" min="0" step="100" placeholder="예: 15000" />
+        </div>
+      </div>
+
+      <div class="privacy-box">
+        같은 링크를 받은 다른 사람은 자신의 브라우저에 별도로 저장되므로 네 데이터를 볼 수 없어.
+        단, 같은 PC의 같은 브라우저 프로필을 여러 사람이 함께 사용하면 같은 저장공간을 공유할 수 있어.
+        다른 기기와 자동 동기화되지는 않으므로 필요하면 백업 파일을 이용해.
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" id="closeProfileModal">닫기</button>
+        <button class="btn primary" id="saveProfile">저장하고 시작하기</button>
+      </div>
+
+      <div class="danger-zone" id="profileDangerZone">
+        <div class="title">개인 데이터 관리</div>
+        <button class="btn danger" id="resetAllData">이 브라우저의 모든 데이터 초기화</button>
+      </div>
+    </section>
+  </div>
+
+  <footer>회사생활 대시보드 · 입력한 데이터는 현재 브라우저의 로컬 저장소에 저장됩니다.</footer>
+</div>
+
+<script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const STORAGE_KEY = "myCompanyDashboard_v2";
+const OLD_STORAGE_KEY = "myCompanyDashboard_v1";
+
+const defaultSettings = {
+  userName:"",
+  companyName:"",
+  onboardingDone:false,
+  basicSalary:0,
+  technicalAllowance:0,
+  positionAllowance:0,
+  qualificationAllowance:0,
+  serviceAllowance:0,
+  jobDevelopment:0,
+  transport:0,
+  meal:0,
+  hourlyOvertime:0,
+  regularEndTime:"18:00",
+  overtimeStartTime:"19:00",
+  overtimeCutoffTime:"22:00",
+  dailyCap:3,
+  monthlyCap:0,
+  incomeTax:0,
+  localTax:0,
+  employmentInsurance:0,
+  healthInsurance:0,
+  longTermCare:0,
+  nationalPension:0,
+  associationFee:0,
+  pensionType:"미설정",
+  retirementMonthly:0,
+  retirementBalance:0,
+  totalAnnualLeave:0,
+  payDay:25
+};
+
+const defaultData = { settings:{...defaultSettings}, records:{}, dailyLogs:{}, weeklyMemos:{} };
+
+/* 2026~2027 대한민국 공휴일
+   2026년에는 노동절·제헌절 공휴일 지정 등 최신 변경을 반영.
+*/
+const holidayData = {
+  "2026-01-01":"신정",
+  "2026-02-16":"설날 연휴",
+  "2026-02-17":"설날",
+  "2026-02-18":"설날 연휴",
+  "2026-03-01":"삼일절",
+  "2026-03-02":"삼일절 대체공휴일",
+  "2026-05-01":"노동절",
+  "2026-05-05":"어린이날",
+  "2026-05-24":"부처님오신날",
+  "2026-05-25":"부처님오신날 대체공휴일",
+  "2026-06-03":"전국동시지방선거일",
+  "2026-06-06":"현충일",
+  "2026-07-17":"제헌절",
+  "2026-08-15":"광복절",
+  "2026-08-17":"광복절 대체공휴일",
+  "2026-09-24":"추석 연휴",
+  "2026-09-25":"추석",
+  "2026-09-26":"추석 연휴",
+  "2026-10-03":"개천절",
+  "2026-10-05":"개천절 대체공휴일",
+  "2026-10-09":"한글날",
+  "2026-12-25":"기독탄신일",
+
+  "2027-01-01":"신정",
+  "2027-02-06":"설날 연휴",
+  "2027-02-07":"설날",
+  "2027-02-08":"설날 연휴",
+  "2027-02-09":"설날 대체공휴일",
+  "2027-03-01":"삼일절",
+  "2027-05-01":"노동절",
+  "2027-05-03":"노동절 대체공휴일",
+  "2027-05-05":"어린이날",
+  "2027-05-13":"부처님오신날",
+  "2027-06-06":"현충일",
+  "2027-07-17":"제헌절",
+  "2027-07-19":"제헌절 대체공휴일",
+  "2027-08-15":"광복절",
+  "2027-08-16":"광복절 대체공휴일",
+  "2027-09-14":"추석 연휴",
+  "2027-09-15":"추석",
+  "2027-09-16":"추석 연휴",
+  "2027-10-03":"개천절",
+  "2027-10-04":"개천절 대체공휴일",
+  "2027-10-09":"한글날",
+  "2027-10-11":"한글날 대체공휴일",
+  "2027-12-25":"기독탄신일",
+  "2027-12-27":"기독탄신일 대체공휴일"
+};
+
+const fixedHolidayNames = {
+  "01-01":"신정",
+  "03-01":"삼일절",
+  "05-01":"노동절",
+  "05-05":"어린이날",
+  "06-06":"현충일",
+  "07-17":"제헌절",
+  "08-15":"광복절",
+  "10-03":"개천절",
+  "10-09":"한글날",
+  "12-25":"기독탄신일"
+};
+
+let data = loadData();
+// 회사 야근 인정 규칙 고정
+data.settings.dailyCap=3;
+data.settings.regularEndTime="18:00";
+data.settings.overtimeStartTime="19:00";
+data.settings.overtimeCutoffTime="22:00";
+let viewDate = new Date();
+viewDate.setDate(1);
+let annualYear = new Date().getFullYear();
+let dailyLogDate = dateKey(new Date());
+let teamCloud = {
+  configured:false,
+  client:null,
+  user:null,
+  members:[],
+  logs:[],
+  myLoggedDates:new Set(),
+  myOvertimeByDate:new Map(),
+  myWorkStatusByDate:new Map(),
+  channel:null
+};
+
+const $ = (id) => document.getElementById(id);
+const won = (n) => Math.round(Number(n || 0)).toLocaleString("ko-KR") + "원";
+const num = (id) => Number($(id).value || 0);
+
+function dateKey(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function migrateV1(old){
+  const migrated = {
+    settings:{...defaultSettings},
+    records: old?.records || {},
+    dailyLogs: old?.dailyLogs || {},
+    weeklyMemos: old?.weeklyMemos || {}
+  };
+  if(old?.settings){
+    migrated.settings.basicSalary = Number(old.settings.monthlySalary || 0);
+    migrated.settings.hourlyOvertime = Number(old.settings.hourlyOvertime || 0);
+    migrated.settings.dailyCap = Number(old.settings.dailyCap || 0);
+    migrated.settings.monthlyCap = Number(old.settings.monthlyCap || 0);
+  }
+  return migrated;
+}
+
+function loadData(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){
+      const parsed = JSON.parse(saved);
+      return {
+        settings:{...defaultSettings,...(parsed.settings||{})},
+        records:parsed.records||{},
+        dailyLogs:parsed.dailyLogs||{},
+        weeklyMemos:parsed.weeklyMemos||{}
+      };
+    }
+    const old = localStorage.getItem(OLD_STORAGE_KEY);
+    if(old){
+      const migrated = migrateV1(JSON.parse(old));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return structuredClone(defaultData);
+  }catch(e){
+    return structuredClone(defaultData);
+  }
+}
+function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function getHoliday(key){
+  if(holidayData[key]) return holidayData[key];
+  const year = Number(key.slice(0,4));
+  if(year !== 2026 && year !== 2027){
+    return fixedHolidayNames[key.slice(5)] || "";
+  }
+  return "";
+}
+
+function recognizedHours(raw){
+  let h=Math.max(0,Number(raw||0));
+  const cap=Number(data.settings.dailyCap||0);
+  if(cap>0) h=Math.min(h,cap);
+  return h;
+}
+
+function monthRecords(){
+  const prefix=`${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,"0")}`;
+  return Object.entries(data.records)
+    .filter(([k])=>k.startsWith(prefix))
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+}
+
+const earningKeys=[
+  "basicSalary","technicalAllowance","positionAllowance","qualificationAllowance","serviceAllowance",
+  "jobDevelopment","transport","meal"
+];
+const deductionKeys=[
+  "incomeTax","localTax","employmentInsurance","healthInsurance",
+  "longTermCare","nationalPension","associationFee"
+];
+
+function totals(){
+  const s=data.settings;
+  const sourceMonth=payrollOvertimeMonth();
+  let hours=overtimeHoursForMonth(sourceMonth);
+  const overtimePay=hours*Number(s.hourlyOvertime||0);
+  const fixedPay=earningKeys.reduce((sum,k)=>sum+Number(s[k]||0),0);
+  const deductions=deductionKeys.reduce((sum,k)=>sum+Number(s[k]||0),0);
+  const gross=fixedPay+overtimePay;
+  const net=gross-deductions;
+  return {hours,overtimePay,fixedPay,deductions,gross,net};
+}
+
+function renderSummary(){
+  const t=totals();
+  $("fixedPay").textContent=won(t.fixedPay);
+  $("otSummary").textContent=`${t.hours.toLocaleString("ko-KR")}h · ${won(t.overtimePay)}`;
+  $("deductionTotal").textContent=won(t.deductions);
+  $("netPay").textContent=won(t.net);
+  $("pensionMonthly").textContent=won(data.settings.retirementMonthly);
+
+  // 월간일정표에서는 '현재 보고 있는 달'의 야근 실적을 보여준다.
+  const currentHours=monthlyOvertimeHours();
+  const currentPay=currentHours*Number(data.settings.hourlyOvertime||0);
+  const otHoursOnly=$("otHoursOnly");
+  const otPayOnly=$("otPayOnly");
+  if(otHoursOnly) otHoursOnly.textContent=`${currentHours.toLocaleString("ko-KR")}시간`;
+  if(otPayOnly) otPayOnly.textContent=won(currentPay);
+
+  const salaryTitle=$("salaryMonthTitle");
+  const salaryNote=$("salaryOvertimeSourceNote");
+  const sourceMonth=payrollOvertimeMonth();
+  if(salaryTitle){
+    salaryTitle.textContent=`${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월 급여 예상`;
+  }
+  if(salaryNote){
+    salaryNote.textContent=
+      `${sourceMonth.getFullYear()}년 ${sourceMonth.getMonth()+1}월 야근비가 `+
+      `${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월 월급에 포함돼.`;
+  }
+}
+
+function renderPayBreakdown(){
+  const t=totals();
+  const s=data.settings;
+  const labels={
+    basicSalary:"기본급",
+    technicalAllowance:"기술수당",
+    positionAllowance:"직급수당",
+    qualificationAllowance:"자격수당",
+    serviceAllowance:"근속수당",
+    jobDevelopment:"직무개발비",
+    transport:"교통비 보조",
+    meal:"식대",
+    incomeTax:"소득세",
+    localTax:"주민세(지방소득세)",
+    employmentInsurance:"고용보험",
+    healthInsurance:"건강보험",
+    longTermCare:"장기요양보험",
+    nationalPension:"국민연금",
+    associationFee:"사우회비"
+  };
+  let rows="";
+  earningKeys.forEach(k=>{
+    rows += `<div>${labels[k]}</div><div class="amount">${won(s[k])}</div>`;
+  });
+  const sourceMonth=payrollOvertimeMonth();
+  rows += `<div>${sourceMonth.getMonth()+1}월 야근비 (${t.hours}h)</div><div class="amount">${won(t.overtimePay)}</div>`;
+  rows += `<div class="total">총 지급액</div><div class="amount total">${won(t.gross)}</div>`;
+  deductionKeys.forEach(k=>{
+    rows += `<div>${labels[k]}</div><div class="amount">− ${won(s[k])}</div>`;
+  });
+  rows += `<div class="total">공제 합계</div><div class="amount total">− ${won(t.deductions)}</div>`;
+  rows += `<div class="total net">예상 실수령액</div><div class="amount total net">${won(t.net)}</div>`;
+  $("payBreakdown").innerHTML=rows;
+}
+
+
+
+function leaveDaysForCategory(category){
+  if(category==="연차") return 1;
+  if(category==="오전연차" || category==="오후연차" || category==="반차") return 0.5;
+  return 0;
+}
+
+function annualLeaveStats(year=new Date().getFullYear()){
+  const total=Number(data.settings.totalAnnualLeave||0);
+  let used=0;
+  const history=[];
+
+  const source=[];
+
+  if(teamCloud.configured && teamCloud.user){
+    for(const [date,status] of teamCloud.myWorkStatusByDate.entries()){
+      if(Number(date.slice(0,4))===year){
+        source.push([date,{category:status,memo:""}]);
+      }
+    }
+  }else{
+    const keys=new Set([
+      ...Object.keys(data.dailyLogs||{}),
+      ...Object.keys(data.records||{})
+    ]);
+    for(const date of keys){
+      if(Number(date.slice(0,4))!==year) continue;
+      const log=data.dailyLogs?.[date];
+      const old=data.records?.[date];
+      source.push([date,{
+        category:log?.work_status || old?.category || "정상근무",
+        memo:""
+      }]);
+    }
+  }
+
+  source.sort((a,b)=>a[0].localeCompare(b[0])).forEach(([date,rec])=>{
+    const days=leaveDaysForCategory(rec.category);
+    if(days>0){
+      used+=days;
+      history.push({
+        date,
+        category:rec.category==="연차"?"하루 연차":rec.category==="반차"?"반차":rec.category,
+        memo:"",
+        days
+      });
+    }
+  });
+
+  const remaining=total-used;
+  return {total,used,remaining,history};
+}
+
+function renderLeavePage(){
+  const year=new Date().getFullYear();
+  const s=annualLeaveStats(year);
+  const fmt=(n)=>Number(n).toLocaleString("ko-KR",{maximumFractionDigits:1});
+
+  const totalEl=$("leaveTotal");
+  if(!totalEl) return;
+
+  totalEl.textContent=`${fmt(s.total)}일`;
+  $("leaveUsed").textContent=`${fmt(s.used)}일`;
+  $("leaveRemaining").textContent=`${fmt(s.remaining)}일`;
+  $("leaveYearLabel").textContent=`${year}년`;
+
+  $("leaveSentence").innerHTML=
+    `올해 연차 총 <strong>${fmt(s.total)}일</strong> 중 <strong>${fmt(s.used)}일</strong>을 썼고, 지금 <strong>${fmt(s.remaining)}일</strong>이 남았어.`;
+
+  const pct=s.total>0 ? Math.min(100,Math.max(0,(s.used/s.total)*100)) : 0;
+  $("leaveProgressBar").style.width=`${pct}%`;
+
+  const history=$("leaveHistory");
+  if(!s.history.length){
+    history.innerHTML='<div class="empty">아직 등록된 연차가 없어. 일일업무일지에서 근무 상태를 연차로 선택하면 자동으로 여기에 쌓여.</div>';
+  }else{
+    history.innerHTML="";
+    s.history.forEach(item=>{
+      const row=document.createElement("div");
+      row.className="leave-list-item";
+      row.innerHTML=`
+        <div><strong>${item.date.slice(5).replace("-","/")}</strong></div>
+        <div><span class="leave-type-badge">${item.category}</span></div>
+        <div>${item.memo||"-"}</div>
+        <div class="leave-days">${fmt(item.days)}일</div>
+      `;
+      history.appendChild(row);
+    });
+  }
+}
+
+
+
+
+
+function parseTimeMinutes(value){
+  if(!value || !/^\d{2}:\d{2}$/.test(value)) return null;
+  const [h,m]=value.split(":").map(Number);
+  return h*60+m;
+}
+
+function calculateOvertimeHours(startTime,endTime){
+  // 회사 야근 인정은 '퇴근시간'만으로 계산한다.
+  // 출근시간이 비어 있어도 퇴근시간이 있으면 정상 계산된다.
+  const end=parseTimeMinutes(endTime);
+  if(end===null) return 0;
+
+  // 회사 규칙
+  // 18:00 정시퇴근
+  // 18:00~19:00 저녁시간 제외
+  // 19:00~22:00만 인정
+  // 완료된 1시간 단위만 인정
+  // 하루 최대 3시간
+  const overtimeStart=19*60;   // 19:00
+  const overtimeCutoff=22*60;  // 22:00
+
+  const recognizedEnd=Math.min(end,overtimeCutoff);
+  const eligibleMinutes=Math.max(0,recognizedEnd-overtimeStart);
+
+  return Math.min(3,Math.floor(eligibleMinutes/60));
+}
+
+function formatHours(hours){
+  const n=Number(hours||0);
+  return n.toLocaleString("ko-KR",{maximumFractionDigits:2});
+}
+
+function getMyDailySummary(key){
+  if(teamCloud.configured && teamCloud.user){
+    return {
+      overtime_hours:Number(teamCloud.myOvertimeByDate.get(key)||0),
+      work_status:teamCloud.myWorkStatusByDate.get(key)||"정상근무"
+    };
+  }
+
+  const log=data.dailyLogs?.[key];
+  if(log){
+    return {
+      overtime_hours:Number(log.overtime_hours ?? calculateOvertimeHours(log.start_time,log.end_time)),
+      work_status:log.work_status || data.records?.[key]?.category || "정상근무"
+    };
+  }
+
+  // 예전 버전 기록 호환
+  const old=data.records?.[key];
+  return {
+    overtime_hours:Number(old?.overtime||0),
+    work_status:old?.category||"정상근무"
+  };
+}
+
+function overtimeHoursForMonth(monthDate){
+  const y=monthDate.getFullYear();
+  const m=monthDate.getMonth();
+  const prefix=`${y}-${String(m+1).padStart(2,"0")}`;
+  let hours=0;
+
+  if(teamCloud.configured && teamCloud.user){
+    for(const [date,value] of teamCloud.myOvertimeByDate.entries()){
+      if(date.startsWith(prefix)) hours += recognizedHours(value);
+    }
+  }else{
+    const keys=new Set([
+      ...Object.keys(data.dailyLogs||{}),
+      ...Object.keys(data.records||{})
+    ]);
+    for(const date of keys){
+      if(date.startsWith(prefix)){
+        hours += recognizedHours(getMyDailySummary(date).overtime_hours);
+      }
+    }
+  }
+
+  const mcap=Number(data.settings.monthlyCap||0);
+  if(mcap>0) hours=Math.min(hours,mcap);
+  return Math.round(hours*100)/100;
+}
+
+function monthlyOvertimeHours(){
+  return overtimeHoursForMonth(viewDate);
+}
+
+function payrollOvertimeMonth(){
+  return new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);
+}
+
+function updateDailyOvertimePreview(){
+  const start=$("daily_start_time")?.value||"";
+  const end=$("daily_end_time")?.value||"";
+  const hours=calculateOvertimeHours(start,end);
+  const preview=$("dailyOvertimePreview");
+  const rule=$("dailyOvertimeRule");
+  const mini=$("dailyOvertimeMini");
+
+  if(preview) preview.textContent=`${formatHours(hours)}시간`;
+  if(rule) rule.textContent="20:00=1h · 21:00=2h · 22:00=3h";
+  if(mini) mini.textContent=`자동 야근 ${formatHours(hours)}h`;
+  return hours;
+}
+
+function hasMyDailyLog(key){
+  if(teamCloud.configured && teamCloud.user){
+    return teamCloud.myLoggedDates.has(key);
+  }
+  return Boolean(data.dailyLogs && data.dailyLogs[key]);
+}
+
+async function loadMyLoggedDates(year=viewDate.getFullYear()){
+  if(!teamCloud.client || !teamCloud.user){
+    teamCloud.myLoggedDates=new Set();
+    teamCloud.myOvertimeByDate=new Map();
+    teamCloud.myWorkStatusByDate=new Map();
+    return;
+  }
+
+  const from=`${year}-01-01`;
+  const to=`${year}-12-31`;
+
+  const {data:rows,error}=await teamCloud.client
+    .from("daily_logs")
+    .select("work_date,overtime_hours,work_status")
+    .eq("user_id",teamCloud.user.id)
+    .gte("work_date",from)
+    .lte("work_date",to);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  // 해당 연도 데이터만 갱신하고 다른 연도 캐시는 유지
+  for(const key of [...teamCloud.myLoggedDates]){
+    if(key.startsWith(`${year}-`)) teamCloud.myLoggedDates.delete(key);
+  }
+  for(const key of [...teamCloud.myOvertimeByDate.keys()]){
+    if(key.startsWith(`${year}-`)) teamCloud.myOvertimeByDate.delete(key);
+  }
+  for(const key of [...teamCloud.myWorkStatusByDate.keys()]){
+    if(key.startsWith(`${year}-`)) teamCloud.myWorkStatusByDate.delete(key);
+  }
+
+  (rows||[]).forEach(r=>{
+    teamCloud.myLoggedDates.add(r.work_date);
+    teamCloud.myOvertimeByDate.set(r.work_date,Number(r.overtime_hours||0));
+    teamCloud.myWorkStatusByDate.set(r.work_date,r.work_status||"정상근무");
+  });
+
+  renderCalendar();
+  renderAnnualCalendar();
+  renderSummary();
+  renderPayBreakdown();
+  renderLeavePage();
+}
+
+
+function escapeHtml(value=""){
+  return String(value).replace(/[&<>"']/g, ch=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[ch]));
+}
+
+function workTextHtml(text){
+  const items=String(text||"").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(!items.length) return '<span class="none">-</span>';
+  return `<ul>${items.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>`;
+}
+
+function displayDailyDate(key){
+  const d=new Date(key+"T00:00:00");
+  const weekdays=["일","월","화","수","목","금","토"];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${weekdays[d.getDay()]})`;
+}
+
+function setDailyMessage(msg, isError=false){
+  const el=$("dailyMessage");
+  if(!el) return;
+  el.textContent=msg||"";
+  el.style.color=isError ? "var(--red)" : "var(--muted)";
+}
+
+function openDailyLog(key){
+  dailyLogDate=key;
+  const d=new Date(key+"T00:00:00");
+  viewDate=new Date(d.getFullYear(),d.getMonth(),1);
+  const btn=document.querySelector('[data-page="dailyLogPage"]');
+  if(btn) btn.click();
+  renderDailyLogPage();
+}
+
+function localDailyMember(){
+  return {
+    user_id:"local",
+    display_name:(data.settings.userName||"내 업무").trim() || "내 업무"
+  };
+}
+
+function getLocalDailyLog(){
+  return data.dailyLogs?.[dailyLogDate] || {
+    morning:"",afternoon:"",overtime:"",start_time:"",end_time:"",
+    overtime_hours:0,work_status:"정상근무"
+  };
+}
+
+function renderDailyRows(members, logs, editableUserId){
+  const body=$("dailyLogBody");
+  if(!body) return;
+  body.innerHTML="";
+
+  if(!members.length){
+    body.innerHTML='<tr><td colspan="4" style="padding:28px;text-align:center;color:var(--muted)">표시할 팀원이 없어.</td></tr>';
+    return;
+  }
+
+  members.forEach(member=>{
+    const log=logs.find(x=>x.user_id===member.user_id) || {
+      morning:"",afternoon:"",overtime:"",start_time:"",end_time:"",
+      overtime_hours:0,work_status:"정상근무"
+    };
+    const editable=member.user_id===editableUserId;
+    const periods=[
+      ["오전","morning"],
+      ["오후","afternoon"],
+      ["야근","overtime"]
+    ];
+
+    periods.forEach(([label,key],idx)=>{
+      const tr=document.createElement("tr");
+
+      if(idx===0){
+        const tdName=document.createElement("td");
+        tdName.className="daily-member";
+        tdName.rowSpan=3;
+        tdName.innerHTML=`${escapeHtml(member.display_name||"이름 미설정")}${editable?'<div class="daily-own-label">내 업무</div>':""}`;
+        tr.appendChild(tdName);
+      }
+
+      const tdPeriod=document.createElement("td");
+      tdPeriod.className="daily-period";
+      tdPeriod.textContent=label;
+      tr.appendChild(tdPeriod);
+
+      const tdContent=document.createElement("td");
+      tdContent.className="daily-content";
+      if(editable){
+        tdContent.innerHTML=`<textarea class="daily-textarea" id="daily_${key}" placeholder="${label} 업무를 한 줄에 하나씩 입력">${escapeHtml(log[key]||"")}</textarea>`;
+      }else{
+        tdContent.innerHTML=`<div class="readonly-work">${workTextHtml(log[key])}</div>`;
+      }
+      tr.appendChild(tdContent);
+
+      if(idx===0){
+        const tdTime=document.createElement("td");
+        tdTime.className="daily-time";
+        tdTime.rowSpan=3;
+        if(editable){
+          tdTime.innerHTML=`
+            <label style="text-align:left">출근</label>
+            <input id="daily_start_time" type="time" value="${escapeHtml(log.start_time||"")}" />
+            <label style="text-align:left;margin-top:9px">퇴근</label>
+            <input id="daily_end_time" type="time" value="${escapeHtml(log.end_time||"")}" />
+            <div class="auto-ot-mini" id="dailyOvertimeMini">자동 야근 ${formatHours(log.overtime_hours||0)}h</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:5px">퇴근시간 입력 즉시 자동 계산</div>
+          `;
+        }else{
+          tdTime.innerHTML=`
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">출근</div>
+            <strong>${escapeHtml(log.start_time||"-")}</strong>
+            <div style="font-size:11px;color:var(--muted);margin:10px 0 4px">퇴근</div>
+            <strong>${escapeHtml(log.end_time||"-")}</strong>
+            <div class="auto-ot-mini">자동 야근 ${formatHours(log.overtime_hours||0)}h</div>
+          `;
+        }
+        tr.appendChild(tdTime);
+      }
+
+      body.appendChild(tr);
+    });
+  });
+
+  if(editableUserId){
+    const startInput=$("daily_start_time");
+    const endInput=$("daily_end_time");
+    if(startInput){
+      startInput.addEventListener("input",updateDailyOvertimePreview);
+      startInput.addEventListener("change",updateDailyOvertimePreview);
+    }
+    if(endInput){
+      endInput.addEventListener("input",updateDailyOvertimePreview);
+      endInput.addEventListener("change",updateDailyOvertimePreview);
+    }
+    updateDailyOvertimePreview();
+  }
+}
+
+function updateSyncUi(){
+  const dot=$("syncDot");
+  const text=$("syncStatusText");
+  const signOut=$("signOutTeam");
+  const email=$("teamEmail");
+  const send=$("sendMagicLink");
+  const explain=$("cloudExplain");
+
+  if(!teamCloud.configured){
+    dot.className="sync-dot wait";
+    text.textContent="팀 연동 설정 필요 · 현재는 내 브라우저에만 저장";
+    signOut.style.display="none";
+    email.style.display="none";
+    send.style.display="none";
+    explain.style.display="block";
+    return;
+  }
+
+  if(teamCloud.user){
+    dot.className="sync-dot on";
+    text.textContent=`팀 연동됨 · ${teamCloud.user.email}`;
+    signOut.style.display="inline-block";
+    email.style.display="none";
+    send.style.display="none";
+    explain.style.display="none";
+  }else{
+    dot.className="sync-dot wait";
+    text.textContent="팀 연동 준비됨 · 이메일로 로그인해";
+    signOut.style.display="none";
+    email.style.display="inline-block";
+    send.style.display="inline-block";
+    explain.style.display="block";
+    explain.textContent="팀 계정으로 로그인하면 같은 날짜의 4명 업무일지가 한 화면에 표시돼. 로그인 링크는 등록된 팀원 이메일로만 보낼 수 있어.";
+  }
+}
+
+async function syncMyCloudProfile(){
+  if(!teamCloud.client || !teamCloud.user) return;
+  const display=(data.settings.userName||"").trim() || (teamCloud.user.email||"팀원").split("@")[0];
+  const {error}=await teamCloud.client.from("profiles").upsert({
+    user_id:teamCloud.user.id,
+    display_name:display
+  },{onConflict:"user_id"});
+  if(error) console.error(error);
+}
+
+async function loadCloudDaily(){
+  if(!teamCloud.client || !teamCloud.user) return;
+  setDailyMessage("팀 업무일지를 불러오는 중...");
+  const [{data:members,error:memberError},{data:logs,error:logError}] = await Promise.all([
+    teamCloud.client.from("profiles").select("user_id,display_name,sort_order").order("sort_order",{ascending:true}).order("display_name",{ascending:true}),
+    teamCloud.client.from("daily_logs").select("user_id,work_date,morning,afternoon,overtime,start_time,end_time,overtime_hours,work_status,updated_at").eq("work_date",dailyLogDate)
+  ]);
+
+  if(memberError || logError){
+    console.error(memberError||logError);
+    setDailyMessage("팀 업무일지를 불러오지 못했어. Supabase 설정과 권한을 확인해줘.",true);
+    return;
+  }
+  teamCloud.members=members||[];
+  teamCloud.logs=logs||[];
+  renderDailyRows(teamCloud.members,teamCloud.logs,teamCloud.user.id);
+  const mine=teamCloud.logs.find(x=>x.user_id===teamCloud.user.id);
+  if($("dailyWorkStatus")) $("dailyWorkStatus").value=mine?.work_status||"정상근무";
+  updateDailyOvertimePreview();
+  setDailyMessage(`${teamCloud.members.length}명의 팀 계정과 연결됨`);
+  subscribeDailyRealtime();
+}
+
+function subscribeDailyRealtime(){
+  if(!teamCloud.client || !teamCloud.user) return;
+  if(teamCloud.channel){
+    teamCloud.client.removeChannel(teamCloud.channel);
+    teamCloud.channel=null;
+  }
+  teamCloud.channel=teamCloud.client
+    .channel(`daily-${dailyLogDate}`)
+    .on("postgres_changes",{
+      event:"*",
+      schema:"public",
+      table:"daily_logs",
+      filter:`work_date=eq.${dailyLogDate}`
+    },()=>loadCloudDaily())
+    .subscribe();
+}
+
+async function renderDailyLogPage(){
+  const label=$("dailyDateLabel");
+  if(!label) return;
+  label.textContent=displayDailyDate(dailyLogDate);
+  updateSyncUi();
+
+  const currentSummary=getMyDailySummary(dailyLogDate);
+  if($("dailyWorkStatus")) $("dailyWorkStatus").value=currentSummary.work_status||"정상근무";
+  if($("dailyOvertimeRule")) $("dailyOvertimeRule").textContent="20:00=1h · 21:00=2h · 22:00=3h";
+
+  if(teamCloud.configured && teamCloud.user){
+    await syncMyCloudProfile();
+    await loadMyLoggedDates();
+    await loadCloudDaily();
+  }else{
+    const member=localDailyMember();
+    const localLog={user_id:"local",...getLocalDailyLog()};
+    renderDailyRows([member],[localLog],"local");
+    if($("dailyWorkStatus")) $("dailyWorkStatus").value=localLog.work_status||data.records?.[dailyLogDate]?.category||"정상근무";
+    setDailyMessage(teamCloud.configured ? "팀 계정 로그인 전에는 이 화면의 내용이 팀과 공유되지 않아." : "현재 로컬 임시 저장 모드야.");
+  }
+}
+
+function returnToMonthlyAfterDailySave(){
+  const d=new Date(dailyLogDate+"T00:00:00");
+  viewDate=new Date(d.getFullYear(),d.getMonth(),1);
+  renderAll();
+  const monthlyBtn=document.querySelector('[data-page="schedulePage"]');
+  if(monthlyBtn) monthlyBtn.click();
+}
+
+async function saveMyDailyLog(){
+  const startTime=$("daily_start_time")?.value||null;
+  const endTime=$("daily_end_time")?.value||null;
+  const overtimeHours=calculateOvertimeHours(startTime,endTime);
+  updateDailyOvertimePreview();
+
+  const payload={
+    morning:$("daily_morning")?.value.trim()||"",
+    afternoon:$("daily_afternoon")?.value.trim()||"",
+    overtime:$("daily_overtime")?.value.trim()||"",
+    start_time:startTime,
+    end_time:endTime,
+    overtime_hours:overtimeHours,
+    work_status:$("dailyWorkStatus")?.value||"정상근무"
+  };
+
+  if(teamCloud.configured){
+    if(!teamCloud.user){
+      setDailyMessage("먼저 팀 계정으로 로그인해줘.",true);
+      return;
+    }
+    const {error}=await teamCloud.client.from("daily_logs").upsert({
+      user_id:teamCloud.user.id,
+      work_date:dailyLogDate,
+      ...payload,
+      updated_at:new Date().toISOString()
+    },{onConflict:"user_id,work_date"});
+    if(error){
+      console.error(error);
+      setDailyMessage("저장에 실패했어. 데이터베이스 권한 설정을 확인해줘.",true);
+      return;
+    }
+    teamCloud.myLoggedDates.add(dailyLogDate);
+    teamCloud.myOvertimeByDate.set(dailyLogDate,overtimeHours);
+    teamCloud.myWorkStatusByDate.set(dailyLogDate,payload.work_status);
+    renderCalendar();
+    renderAnnualCalendar();
+    renderSummary();
+    renderPayBreakdown();
+    renderLeavePage();
+    setDailyMessage(`내 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
+    await loadCloudDaily();
+    returnToMonthlyAfterDailySave();
+  }else{
+    data.dailyLogs=data.dailyLogs||{};
+    data.dailyLogs[dailyLogDate]=payload;
+    // 예전 날짜별 기록의 야근/연차 데이터가 있다면 일일업무일지로 자연스럽게 이전
+    if(data.records?.[dailyLogDate]) delete data.records[dailyLogDate];
+    persist();
+    renderCalendar();
+    renderAnnualCalendar();
+    renderSummary();
+    renderPayBreakdown();
+    renderLeavePage();
+    setDailyMessage(`이 브라우저에 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
+    returnToMonthlyAfterDailySave();
+  }
+}
+
+async function initTeamCloud(){
+  const cfg=window.TEAM_SYNC_CONFIG||{};
+  const url=(cfg.supabaseUrl||"").trim();
+  const key=(cfg.supabasePublishableKey||"").trim();
+
+  if(!url || !key || !window.supabase){
+    teamCloud.configured=false;
+    updateSyncUi();
+    renderDailyLogPage();
+    return;
+  }
+
+  teamCloud.configured=true;
+  teamCloud.client=window.supabase.createClient(url,key);
+
+  const {data:{session}}=await teamCloud.client.auth.getSession();
+  teamCloud.user=session?.user||null;
+
+  if(teamCloud.user){
+    await syncMyCloudProfile();
+    await loadMyLoggedDates(viewDate.getFullYear());
+    const sourceMonth=payrollOvertimeMonth();
+    if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
+      await loadMyLoggedDates(sourceMonth.getFullYear());
+    }
+    renderAll();
+  }
+
+  teamCloud.client.auth.onAuthStateChange(async(_event,session)=>{
+    teamCloud.user=session?.user||null;
+    updateSyncUi();
+    if(teamCloud.user){
+      await syncMyCloudProfile();
+      await loadMyLoggedDates(viewDate.getFullYear());
+      const sourceMonth=payrollOvertimeMonth();
+      if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
+        await loadMyLoggedDates(sourceMonth.getFullYear());
+      }
+      renderAll();
+    }else{
+      renderAll();
+    }
+    if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
+  });
+
+  updateSyncUi();
+  if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
+}
+
+
+
+function effectivePaydayDate(year,month){
+  const configured=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
+  const lastDay=new Date(year,month+1,0).getDate();
+
+  // 설정일이 해당 월에 없으면 우선 그 달의 말일로 맞춘다.
+  let d=new Date(year,month,Math.min(configured,lastDay));
+
+  // 토/일/대한민국 공휴일이면 직전 평일까지 계속 당긴다.
+  while(
+    d.getDay()===0 ||
+    d.getDay()===6 ||
+    Boolean(getHoliday(dateKey(d)))
+  ){
+    d.setDate(d.getDate()-1);
+  }
+
+  return d;
+}
+
+function effectivePayday(year,month){
+  return effectivePaydayDate(year,month).getDate();
+}
+
+function isPaydayDate(d){
+  const payday=effectivePaydayDate(d.getFullYear(),d.getMonth());
+  return dateKey(d)===dateKey(payday);
+}
+
+
+function paydayLabelForDate(d){
+  const configured=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
+  const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const nominalDay=Math.min(configured,lastDay);
+  const effective=effectivePaydayDate(d.getFullYear(),d.getMonth());
+
+  if(effective.getDate()!==nominalDay){
+    return `월급날 (원래 ${nominalDay}일 → 휴일로 앞당김)`;
+  }
+  return "월급날";
+}
+
+function weekMemoKey(mondayDate){
+  return dateKey(mondayDate);
+}
+
+function weekRangeLabel(mondayDate){
+  const sunday=new Date(mondayDate);
+  sunday.setDate(mondayDate.getDate()+6);
+  return `${mondayDate.getMonth()+1}/${mondayDate.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
+}
+
+function makeWeekMemoCell(mondayDate){
+  data.weeklyMemos=data.weeklyMemos||{};
+  const key=weekMemoKey(mondayDate);
+  const cell=document.createElement("div");
+  cell.className="week-memo-cell";
+
+  const title=document.createElement("div");
+  title.className="week-memo-title";
+  title.textContent=weekRangeLabel(mondayDate);
+
+  const textarea=document.createElement("textarea");
+  textarea.className="week-memo-input";
+  textarea.placeholder="이번주 할일 메모";
+  textarea.value=data.weeklyMemos[key]||"";
+  textarea.addEventListener("input",()=>{
+    const value=textarea.value;
+    if(value.trim()){
+      data.weeklyMemos[key]=value;
+    }else{
+      delete data.weeklyMemos[key];
+    }
+    persist();
+  });
+
+  cell.appendChild(title);
+  cell.appendChild(textarea);
+  return cell;
+}
+
+function renderAnnualCalendar(){
+  const wrap=$("annualCalendar");
+  if(!wrap) return;
+  $("annualYearLabel").textContent=`${annualYear}년`;
+  wrap.innerHTML="";
+  const todayKey=dateKey(new Date());
+
+  for(let month=0;month<12;month++){
+    const card=document.createElement("section");
+    card.className="mini-month";
+    card.dataset.month=month;
+
+    const title=document.createElement("div");
+    title.className="mini-month-title";
+    title.innerHTML=`<strong>${month+1}월</strong><span>월간 보기 →</span>`;
+    card.appendChild(title);
+
+    const week=document.createElement("div");
+    week.className="mini-week";
+    week.innerHTML='<div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div><div class="sun">일</div>';
+    card.appendChild(week);
+
+    const days=document.createElement("div");
+    days.className="mini-days";
+
+    const first=new Date(annualYear,month,1);
+    const mondayOffset=(first.getDay()+6)%7;
+    const start=new Date(annualYear,month,1-mondayOffset);
+
+    for(let i=0;i<42;i++){
+      const d=new Date(start);
+      d.setDate(start.getDate()+i);
+      const key=dateKey(d);
+      const day=document.createElement("div");
+      day.className="mini-day";
+      day.textContent=d.getDate();
+
+      if(d.getMonth()!==month) day.classList.add("other");
+      if(d.getDay()===6) day.classList.add("sat");
+      if(d.getDay()===0) day.classList.add("sun");
+      if(getHoliday(key)) {
+        day.classList.add("holiday");
+        day.title=getHoliday(key);
+      }
+      if(hasMyDailyLog(key)){
+        day.classList.add("has-daily-log");
+        const summary=getMyDailySummary(key);
+        const bits=[];
+        if(Number(summary.overtime_hours)>0) bits.push(`야근 ${formatHours(summary.overtime_hours)}h`);
+        if(["연차","오전연차","오후연차"].includes(summary.work_status)) bits.push(summary.work_status==="연차"?"하루 연차":summary.work_status);
+        day.title=[getHoliday(key),...bits].filter(Boolean).join(" · ");
+      }
+      if(d.getMonth()===month && isPaydayDate(d)){
+        day.classList.add("payday");
+        day.title=[day.title,paydayLabelForDate(d)].filter(Boolean).join(" · ");
+      }
+      if(key===todayKey) day.classList.add("today");
+
+      days.appendChild(day);
+    }
+    card.appendChild(days);
+
+    card.addEventListener("click",async()=>{
+      viewDate=new Date(annualYear,month,1);
+      if(teamCloud.configured && teamCloud.user) await loadMyLoggedDates(viewDate.getFullYear());
+      renderAll();
+      const monthlyBtn=document.querySelector('[data-page="schedulePage"]');
+      if(monthlyBtn) monthlyBtn.click();
+    });
+
+    wrap.appendChild(card);
+  }
+}
+
+function renderCalendar(){
+  const y=viewDate.getFullYear(),m=viewDate.getMonth();
+  $("monthLabel").textContent=`${y}년 ${m+1}월`;
+  $("unsupportedHoliday").style.display=(y===2026||y===2027)?"none":"block";
+
+  const first=new Date(y,m,1);
+  const mondayOffset=(first.getDay()+6)%7;
+  const start=new Date(y,m,1-mondayOffset);
+  const today=dateKey(new Date());
+  const cal=$("calendar");
+  cal.innerHTML="";
+
+  for(let weekIndex=0;weekIndex<6;weekIndex++){
+    const monday=new Date(start);
+    monday.setDate(start.getDate()+weekIndex*7);
+    cal.appendChild(makeWeekMemoCell(monday));
+
+    for(let dayIndex=0;dayIndex<7;dayIndex++){
+      const d=new Date(monday);
+      d.setDate(monday.getDate()+dayIndex);
+
+      const key=dateKey(d);
+      const holiday=getHoliday(key);
+      const dow=d.getDay();
+      const summary=getMyDailySummary(key);
+
+      const cell=document.createElement("div");
+      cell.className="day";
+      if(d.getMonth()!==m) cell.classList.add("other");
+      if(key===today) cell.classList.add("today");
+      if(dow===6) cell.classList.add("saturday");
+      if(dow===0) cell.classList.add("sunday");
+      if(holiday) cell.classList.add("holiday");
+      if(hasMyDailyLog(key)) cell.classList.add("has-daily-log");
+
+      cell.innerHTML=`<div class="num">${d.getDate()}</div>`;
+
+      if(d.getMonth()===m && isPaydayDate(d)){
+        const star=document.createElement("span");
+        star.className="payday-star";
+        star.textContent="★";
+        star.title=paydayLabelForDate(d);
+        cell.appendChild(star);
+
+        const payChip=document.createElement("div");
+        payChip.className="chip payday-chip";
+        payChip.textContent="★ 월급날";
+        payChip.title=paydayLabelForDate(d);
+        cell.appendChild(payChip);
+      }
+
+      if(holiday){
+        const c=document.createElement("div");
+        c.className="chip holiday";
+        c.textContent=holiday;
+        cell.appendChild(c);
+      }
+
+      if(Number(summary.overtime_hours)>0){
+        const c=document.createElement("div");
+        c.className="chip ot";
+        c.textContent=`야근 ${formatHours(summary.overtime_hours)}h`;
+        cell.appendChild(c);
+      }
+
+      if(["연차","오전연차","오후연차"].includes(summary.work_status)){
+        const c=document.createElement("div");
+        c.className="chip note";
+        c.textContent=summary.work_status==="연차"?"하루 연차":summary.work_status;
+        cell.appendChild(c);
+      }
+
+      cell.addEventListener("click",()=>openDailyLog(key));
+      cal.appendChild(cell);
+    }
+  }
+}
+
+function renderSettings(){
+  Object.keys(defaultSettings).forEach(k=>{
+    const el=$(k);
+    if(!el) return;
+    if(el.tagName==="SELECT"){
+      el.value=data.settings[k]??defaultSettings[k];
+    }else if(typeof defaultSettings[k]==="number"){
+      el.value=Number(data.settings[k]||0) || "";
+    }else{
+      el.value=data.settings[k]??defaultSettings[k];
+    }
+  });
+  renderPayBreakdown();
+}
+
+function renderAll(){
+  renderAnnualCalendar();
+  renderCalendar();
+  renderSummary();
+  renderPayBreakdown();
+  renderLeavePage();
+  const dailyPage=$("dailyLogPage");
+  if(dailyPage?.classList.contains("active")) renderDailyLogPage();
+}
+
+$("saveLeaveSettings").addEventListener("click",()=>{
+  data.settings.totalAnnualLeave=Number($("totalAnnualLeave").value||0);
+  persist();
+  renderLeavePage();
+  alert("올해 총 연차를 저장했어.");
+});
+
+$("saveSettings").addEventListener("click",()=>{
+  const s={...data.settings};
+  Object.keys(defaultSettings).forEach(k=>{
+    const el=$(k);
+    if(!el) return;
+    if(el.tagName==="SELECT"){
+      s[k]=el.value;
+    }else if(typeof defaultSettings[k]==="number"){
+      s[k]=Number(el.value||0);
+    }else{
+      s[k]=el.value;
+    }
+  });
+  data.settings={...defaultSettings,...s};
+  data.settings.dailyCap=3;
+  data.settings.regularEndTime="18:00";
+  data.settings.overtimeStartTime="19:00";
+  data.settings.overtimeCutoffTime="22:00";
+  data.settings.payDay=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
+  persist();
+  renderAll();
+  updateBranding();
+  alert("급여·공제·퇴직연금 설정을 저장했어.");
+});
+
+
+
+$("prevDailyDate").addEventListener("click",()=>{
+  const d=new Date(dailyLogDate+"T00:00:00");
+  d.setDate(d.getDate()-1);
+  dailyLogDate=dateKey(d);
+  renderDailyLogPage();
+});
+$("nextDailyDate").addEventListener("click",()=>{
+  const d=new Date(dailyLogDate+"T00:00:00");
+  d.setDate(d.getDate()+1);
+  dailyLogDate=dateKey(d);
+  renderDailyLogPage();
+});
+$("todayDailyDate").addEventListener("click",()=>{
+  dailyLogDate=dateKey(new Date());
+  renderDailyLogPage();
+});
+$("dailyToSchedule").addEventListener("click",()=>{
+  const d=new Date(dailyLogDate+"T00:00:00");
+  viewDate=new Date(d.getFullYear(),d.getMonth(),1);
+  renderAll();
+  const monthlyBtn=document.querySelector('[data-page="schedulePage"]');
+  if(monthlyBtn) monthlyBtn.click();
+});
+$("saveDailyLog").addEventListener("click",saveMyDailyLog);
+
+$("sendMagicLink").addEventListener("click",async()=>{
+  if(!teamCloud.client) return;
+  const email=$("teamEmail").value.trim();
+  if(!email){
+    setDailyMessage("로그인할 이메일을 입력해줘.",true);
+    return;
+  }
+  const redirectUrl=location.origin+location.pathname;
+  const {error}=await teamCloud.client.auth.signInWithOtp({
+    email,
+    options:{
+      shouldCreateUser:false,
+      emailRedirectTo:redirectUrl
+    }
+  });
+  if(error){
+    setDailyMessage("로그인 링크를 보내지 못했어. 등록된 팀원 이메일인지 확인해줘.",true);
+    return;
+  }
+  setDailyMessage("이메일로 로그인 링크를 보냈어. 메일의 링크를 누르면 이 페이지로 돌아와 로그인돼.");
+});
+$("signOutTeam").addEventListener("click",async()=>{
+  if(teamCloud.client) await teamCloud.client.auth.signOut();
+  teamCloud.user=null;
+  teamCloud.myLoggedDates=new Set();
+  teamCloud.myOvertimeByDate=new Map();
+  teamCloud.myWorkStatusByDate=new Map();
+  renderCalendar();
+  renderAnnualCalendar();
+  renderDailyLogPage();
+});
+
+$("prevYear").addEventListener("click",()=>{
+  annualYear--;
+  renderAnnualCalendar();
+});
+$("nextYear").addEventListener("click",()=>{
+  annualYear++;
+  renderAnnualCalendar();
+});
+$("thisYearBtn").addEventListener("click",()=>{
+  annualYear=new Date().getFullYear();
+  renderAnnualCalendar();
+});
+
+$("prevMonth").addEventListener("click",async()=>{
+  viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);
+  if(teamCloud.configured && teamCloud.user) await loadMyLoggedDates();
+  renderAll();
+});
+$("nextMonth").addEventListener("click",async()=>{
+  viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);
+  if(teamCloud.configured && teamCloud.user) await loadMyLoggedDates();
+  renderAll();
+});
+$("todayBtn").addEventListener("click",async()=>{
+  const now=new Date();
+  viewDate=new Date(now.getFullYear(),now.getMonth(),1);
+  if(teamCloud.configured && teamCloud.user) await loadMyLoggedDates(viewDate.getFullYear());
+  renderAll();
+});
+
+$("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`회사대시보드_백업_${dateKey(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async(e)=>{
+  const file=e.target.files?.[0];
+  if(!file)return;
+  try{
+    const obj=JSON.parse(await file.text());
+    if(!obj.settings||!obj.records)throw new Error("형식 오류");
+    data={
+      settings:{...defaultSettings,...obj.settings},
+      records:obj.records,
+      dailyLogs:obj.dailyLogs||{},
+      weeklyMemos:obj.weeklyMemos||{}
+    };
+    persist();
+    renderSettings();
+    renderAll();
+    alert("백업을 불러왔어.");
+  }catch(err){
+    alert("올바른 백업 파일이 아니야.");
+  }
+  e.target.value="";
+});
+
+
+
+function updateBranding(){
+  const name=(data.settings.userName||"").trim();
+  const company=(data.settings.companyName||"").trim();
+
+  $("appTitle").textContent = name ? `${name}님의 회사생활 대시보드` : "회사생활 대시보드";
+  $("appSubtitle").textContent = company
+    ? `${company} · 일정 · 팀 업무일지 · 야근 · 급여 · 연차 관리`
+    : "내 일정 · 팀 업무일지 · 야근 · 급여 · 연차를 한 곳에서 관리해.";
+}
+
+function openProfileModal(firstVisit=false){
+  $("profileUserName").value=data.settings.userName||"";
+  $("profileCompanyName").value=data.settings.companyName||"";
+  $("profileAnnualLeave").value=Number(data.settings.totalAnnualLeave||0) || "";
+  $("profileBasicSalary").value=Number(data.settings.basicSalary||0) || "";
+  $("profileOvertimeRate").value=Number(data.settings.hourlyOvertime||0) || "";
+
+  $("profileModalTitle").textContent=firstVisit ? "내 대시보드 시작하기" : "내 정보";
+  $("closeProfileModal").style.display=firstVisit ? "none" : "inline-block";
+  $("profileDangerZone").style.display=firstVisit ? "none" : "block";
+  $("profileModal").classList.add("open");
+  $("profileModal").setAttribute("aria-hidden","false");
+}
+
+function closeProfileModal(){
+  $("profileModal").classList.remove("open");
+  $("profileModal").setAttribute("aria-hidden","true");
+}
+
+$("profileBtn").addEventListener("click",()=>openProfileModal(false));
+$("closeProfileModal").addEventListener("click",closeProfileModal);
+
+$("saveProfile").addEventListener("click",()=>{
+  data.settings.userName=$("profileUserName").value.trim();
+  data.settings.companyName=$("profileCompanyName").value.trim();
+  data.settings.totalAnnualLeave=Number($("profileAnnualLeave").value||0);
+  data.settings.basicSalary=Number($("profileBasicSalary").value||0);
+  data.settings.hourlyOvertime=Number($("profileOvertimeRate").value||0);
+  data.settings.onboardingDone=true;
+  persist();
+  renderSettings();
+  renderAll();
+  updateBranding();
+  closeProfileModal();
+  if(teamCloud.user) syncMyCloudProfile().then(()=>renderDailyLogPage());
+});
+
+$("resetAllData").addEventListener("click",()=>{
+  const ok=confirm("이 브라우저에 저장된 일정, 급여, 연차 등 모든 데이터를 삭제할까? 이 작업은 되돌릴 수 없어.");
+  if(!ok) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(OLD_STORAGE_KEY);
+  localStorage.removeItem("myCompanyDashboard_lastPage");
+  data=structuredClone(defaultData);
+  viewDate=new Date();
+  viewDate.setDate(1);
+  annualYear=new Date().getFullYear();
+  renderSettings();
+  renderAll();
+  updateBranding();
+  openProfileModal(true);
+});
+
+
+// 상단 카테고리 탭 전환
+document.querySelectorAll(".top-tab").forEach(btn=>{
+  btn.addEventListener("click",async()=>{
+    const pageId=btn.dataset.page;
+    document.querySelectorAll(".top-tab").forEach(b=>b.classList.toggle("active",b===btn));
+    document.querySelectorAll(".page-view").forEach(p=>p.classList.toggle("active",p.id===pageId));
+
+    // 월 이동 버튼은 월간일정표에서만 표시
+    $("monthNav").style.display = pageId==="schedulePage" ? "flex" : "none";
+
+    // 마지막으로 열어본 페이지 기억
+    localStorage.setItem("myCompanyDashboard_lastPage",pageId);
+
+    if(pageId==="dailyLogPage") await renderDailyLogPage();
+
+    if(pageId==="salaryPage" && teamCloud.configured && teamCloud.user){
+      const sourceMonth=payrollOvertimeMonth();
+      await loadMyLoggedDates(sourceMonth.getFullYear());
+      renderSummary();
+      renderPayBreakdown();
+    }
+  });
+});
+
+const lastPage=localStorage.getItem("myCompanyDashboard_lastPage");
+if(["annualPage","schedulePage","dailyLogPage","salaryPage","leavePage"].includes(lastPage)){
+  const savedBtn=document.querySelector(`[data-page="${lastPage}"]`);
+  if(savedBtn) savedBtn.click();
+}else{
+  const annualBtn=document.querySelector('[data-page="annualPage"]');
+  if(annualBtn) annualBtn.click();
+}
+
+renderSettings();
+renderAll();
+updateBranding();
+
+if(!data.settings.onboardingDone){
+  openProfileModal(true);
+}
+initTeamCloud();
+</script>
+</body>
+</html>
