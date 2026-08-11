@@ -469,6 +469,24 @@
   }
   .weekly-summary-chip strong{color:#2f343a}
 
+
+  .global-auth-wrap{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .global-auth-state{
+    font-size:10px;color:var(--muted);max-width:220px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap
+  }
+  .login-modal .login-status{
+    margin-top:12px;padding:10px 12px;border-radius:10px;background:#f5f8fb;
+    color:#56616b;font-size:12px;line-height:1.55;min-height:18px
+  }
+  .login-modal .login-status.error{background:#fff1f1;color:#b23b3b}
+  .login-modal .login-status.success{background:#eef9ff;color:#2f8cbe}
+  .login-user-box{
+    padding:12px;border:1px solid var(--line);border-radius:12px;background:#fafbfc;
+    margin-bottom:12px
+  }
+  .login-user-box strong{display:block;font-size:14px;margin-bottom:3px}
+
   footer{margin:24px 0 4px;color:var(--muted);font-size:11px;text-align:center}
   @media(max-width:1050px){
     .cards{grid-template-columns:repeat(3,1fr)}
@@ -504,6 +522,10 @@
       <div class="sub" id="appSubtitle">내 일정 · 팀 업무일지 · 야근 · 급여 · 연차를 한 곳에서 관리해.</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <div class="global-auth-wrap">
+        <span class="global-auth-state" id="globalAuthState">팀 로그인 전</span>
+        <button class="icon-btn" id="globalAuthBtn">팀 로그인</button>
+      </div>
       <button class="icon-btn" id="profileBtn">내 정보</button>
       <div class="month-nav" id="monthNav" style="display:none">
       <button class="icon-btn" id="prevMonth">←</button>
@@ -883,6 +905,43 @@
 
   </main>
 
+
+
+  <div class="modal-backdrop" id="loginModal" aria-hidden="true">
+    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" style="max-width:520px">
+      <h2 id="loginModalTitle">팀 로그인</h2>
+      <p class="lead">
+        등록된 팀원 이메일을 입력하면 로그인 링크가 메일로 발송돼.
+        메일의 링크를 누르면 이 대시보드로 돌아오면서 로그인돼.
+      </p>
+
+      <div id="loginSignedOutArea">
+        <div class="field">
+          <label for="globalTeamEmail">팀원 이메일</label>
+          <input id="globalTeamEmail" type="email" autocomplete="email" placeholder="name@example.com" />
+        </div>
+        <button class="btn primary" id="globalSendMagicLink" style="width:100%;margin-top:10px">
+          로그인 링크 받기
+        </button>
+      </div>
+
+      <div id="loginSignedInArea" style="display:none">
+        <div class="login-user-box">
+          <strong>로그인됨</strong>
+          <span id="loginUserEmail"></span>
+        </div>
+        <button class="btn danger" id="globalSignOut" style="width:100%">로그아웃</button>
+      </div>
+
+      <div class="login-status" id="globalLoginStatus">
+        Supabase에 등록된 팀원만 로그인할 수 있어.
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" id="closeLoginModal">닫기</button>
+      </div>
+    </section>
+  </div>
 
   <div class="modal-backdrop" id="profileModal" aria-hidden="true">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
@@ -1677,7 +1736,96 @@ function renderDailyRows(members, logs, editableUserId){
   }
 }
 
+
+function setGlobalLoginStatus(message,type=""){
+  const el=$("globalLoginStatus");
+  if(!el) return;
+  el.textContent=message||"";
+  el.className=`login-status${type?` ${type}`:""}`;
+}
+
+function openLoginModal(){
+  const modal=$("loginModal");
+  if(!modal) return;
+  updateGlobalAuthUi();
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  if(!teamCloud.user){
+    requestAnimationFrame(()=>$("globalTeamEmail")?.focus());
+  }
+}
+
+function closeLoginModal(){
+  const modal=$("loginModal");
+  if(!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+}
+
+function updateGlobalAuthUi(){
+  const btn=$("globalAuthBtn");
+  const state=$("globalAuthState");
+  const signedOut=$("loginSignedOutArea");
+  const signedIn=$("loginSignedInArea");
+  const email=$("loginUserEmail");
+
+  if(!btn||!state) return;
+
+  if(!teamCloud.configured){
+    state.textContent="팀 연동 설정 필요";
+    btn.textContent="팀 로그인";
+    if(signedOut) signedOut.style.display="block";
+    if(signedIn) signedIn.style.display="none";
+    setGlobalLoginStatus("Supabase 연결 설정을 확인해줘.","error");
+    return;
+  }
+
+  if(teamCloud.user){
+    state.textContent=teamCloud.user.email||"로그인됨";
+    btn.textContent="로그인됨";
+    if(email) email.textContent=teamCloud.user.email||"";
+    if(signedOut) signedOut.style.display="none";
+    if(signedIn) signedIn.style.display="block";
+    setGlobalLoginStatus("팀 업무일지가 Supabase와 연동되고 있어.","success");
+  }else{
+    state.textContent="팀 로그인 전";
+    btn.textContent="팀 로그인";
+    if(signedOut) signedOut.style.display="block";
+    if(signedIn) signedIn.style.display="none";
+    setGlobalLoginStatus("Supabase에 등록된 팀원 이메일로 로그인해.");
+  }
+}
+
+async function sendTeamMagicLink(email){
+  if(!teamCloud.client){
+    return {ok:false,message:"Supabase 연결이 아직 준비되지 않았어."};
+  }
+  const clean=String(email||"").trim();
+  if(!clean){
+    return {ok:false,message:"로그인할 이메일을 입력해줘."};
+  }
+
+  const redirectUrl=location.origin+location.pathname;
+  const {error}=await teamCloud.client.auth.signInWithOtp({
+    email:clean,
+    options:{
+      shouldCreateUser:false,
+      emailRedirectTo:redirectUrl
+    }
+  });
+
+  if(error){
+    console.error(error);
+    return {ok:false,message:"로그인 링크를 보내지 못했어. Supabase에 등록된 팀원 이메일인지 확인해줘."};
+  }
+  return {
+    ok:true,
+    message:"로그인 링크를 보냈어! 메일을 열어서 링크를 누르면 이 사이트로 돌아와 로그인돼."
+  };
+}
+
 function updateSyncUi(){
+  updateGlobalAuthUi();
   const dot=$("syncDot");
   const text=$("syncStatusText");
   const signOut=$("signOutTeam");
@@ -2113,12 +2261,14 @@ async function initTeamCloud(){
   if(!url || !key || !window.supabase){
     teamCloud.configured=false;
     updateSyncUi();
+    updateGlobalAuthUi();
     renderDailyLogPage();
     return;
   }
 
   teamCloud.configured=true;
   teamCloud.client=window.supabase.createClient(url,key);
+  updateGlobalAuthUi();
 
   const {data:{session}}=await teamCloud.client.auth.getSession();
   teamCloud.user=session?.user||null;
@@ -2136,6 +2286,7 @@ async function initTeamCloud(){
   teamCloud.client.auth.onAuthStateChange(async(_event,session)=>{
     teamCloud.user=session?.user||null;
     updateSyncUi();
+    updateGlobalAuthUi();
     if(teamCloud.user){
       await syncMyCloudProfile();
       await loadMyLoggedDates(viewDate.getFullYear());
@@ -2152,6 +2303,7 @@ async function initTeamCloud(){
   });
 
   updateSyncUi();
+  updateGlobalAuthUi();
   if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
   if($("weeklyLogPage")?.classList.contains("active")) renderWeeklyLogPage();
 }
@@ -2592,25 +2744,8 @@ $("dailyToSchedule").addEventListener("click",()=>{
 $("saveDailyLog").addEventListener("click",saveMyDailyLog);
 
 $("sendMagicLink").addEventListener("click",async()=>{
-  if(!teamCloud.client) return;
-  const email=$("teamEmail").value.trim();
-  if(!email){
-    setDailyMessage("로그인할 이메일을 입력해줘.",true);
-    return;
-  }
-  const redirectUrl=location.origin+location.pathname;
-  const {error}=await teamCloud.client.auth.signInWithOtp({
-    email,
-    options:{
-      shouldCreateUser:false,
-      emailRedirectTo:redirectUrl
-    }
-  });
-  if(error){
-    setDailyMessage("로그인 링크를 보내지 못했어. 등록된 팀원 이메일인지 확인해줘.",true);
-    return;
-  }
-  setDailyMessage("이메일로 로그인 링크를 보냈어. 메일의 링크를 누르면 이 페이지로 돌아와 로그인돼.");
+  const result=await sendTeamMagicLink($("teamEmail").value);
+  setDailyMessage(result.message,!result.ok);
 });
 $("signOutTeam").addEventListener("click",async()=>{
   if(teamCloud.client) await teamCloud.client.auth.signOut();
@@ -2717,6 +2852,41 @@ function closeProfileModal(){
   $("profileModal").classList.remove("open");
   $("profileModal").setAttribute("aria-hidden","true");
 }
+
+
+$("globalAuthBtn").addEventListener("click",openLoginModal);
+$("closeLoginModal").addEventListener("click",closeLoginModal);
+
+$("loginModal").addEventListener("click",(e)=>{
+  if(e.target===$("loginModal")) closeLoginModal();
+});
+
+$("globalSendMagicLink").addEventListener("click",async()=>{
+  const btn=$("globalSendMagicLink");
+  btn.disabled=true;
+  btn.textContent="보내는 중...";
+  setGlobalLoginStatus("로그인 메일을 보내는 중이야.");
+
+  const result=await sendTeamMagicLink($("globalTeamEmail").value);
+  setGlobalLoginStatus(result.message,result.ok?"success":"error");
+
+  btn.disabled=false;
+  btn.textContent="로그인 링크 받기";
+});
+
+$("globalTeamEmail").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    $("globalSendMagicLink").click();
+  }
+});
+
+$("globalSignOut").addEventListener("click",async()=>{
+  if(teamCloud.client) await teamCloud.client.auth.signOut();
+  teamCloud.user=null;
+  updateSyncUi();
+  closeLoginModal();
+});
 
 $("profileBtn").addEventListener("click",()=>openProfileModal(false));
 $("closeProfileModal").addEventListener("click",closeProfileModal);
