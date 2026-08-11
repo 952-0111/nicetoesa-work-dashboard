@@ -114,15 +114,32 @@
     min-height:112px;border-top:1px solid var(--line);padding:8px;background:#fffdf3
   }
   .week-memo-title{
-    font-size:10px;font-weight:900;color:#8a7430;margin-bottom:5px
+    font-size:10px;font-weight:900;color:#8a7430;margin-bottom:6px
   }
-  .week-memo-input{
-    width:100%;height:76px;min-height:76px;padding:7px 8px;resize:none;
-    border:1px solid #eadc9f;border-radius:9px;background:#fffef8;
-    color:#565042;font-size:11px;line-height:1.45
+  .week-checklist{
+    display:flex;flex-direction:column;gap:5px
   }
-  .week-memo-input:focus{
-    border-color:#dfc75d;box-shadow:0 0 0 3px rgba(242,201,76,.18)
+  .week-check-row{
+    display:grid;grid-template-columns:18px 1fr 20px;gap:5px;align-items:start
+  }
+  .week-check-row input[type="checkbox"]{
+    width:14px;height:14px;margin-top:3px;accent-color:#e1bf34
+  }
+  .week-check-text{
+    width:100%;min-width:0;padding:5px 6px;border:1px solid #eadc9f;
+    border-radius:7px;background:#fffef8;color:#565042;font-size:10px;line-height:1.35
+  }
+  .week-check-row.done .week-check-text{
+    text-decoration:line-through;color:#9a927b;background:#faf7e9
+  }
+  .week-check-delete{
+    border:0;background:transparent;color:#b8aa79;cursor:pointer;font-size:13px;
+    line-height:1;padding:3px 0
+  }
+  .week-check-add{
+    margin-top:6px;width:100%;border:1px dashed #d8c36d;background:#fffef8;
+    color:#8a7430;border-radius:8px;padding:5px 7px;font-size:10px;font-weight:900;
+    cursor:pointer
   }
   .payday-star{
     position:absolute;right:8px;top:8px;color:#ef72a5;font-size:15px;
@@ -492,7 +509,7 @@
             <div class="calendar" id="calendar"></div>
           </div>
           <div class="help" style="margin-top:12px">
-            개나리색 점은 일일업무일지 작성 완료, 분홍색 ★은 월급날이야. 월급날이 토·일·공휴일이면 직전 평일로 자동 조정돼. 월요일 왼쪽의 주간메모는 입력 즉시 자동 저장돼. 야근은 19:00~22:00 사이의 완료된 1시간 단위만 인정하며 하루 최대 3시간으로 자동 계산돼.
+            개나리색 점은 일일업무일지 작성 완료, 분홍색 ★은 월급날이야. 월급날이 토·일·공휴일이면 직전 평일로 자동 조정돼. 월요일 왼쪽의 주간메모는 체크리스트형이고, 항목과 체크 상태가 자동 저장돼. 야근은 19:00~22:00 사이의 완료된 1시간 단위만 인정하며 하루 최대 3시간으로 자동 계산돼.
           </div>
         </div>
       </section>
@@ -1767,9 +1784,42 @@ function weekRangeLabel(mondayDate){
   return `${mondayDate.getMonth()+1}/${mondayDate.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
 }
 
+function normalizeWeeklyMemoItems(raw){
+  // v10.x의 문자열 메모도 자동으로 체크리스트 항목으로 변환
+  if(Array.isArray(raw)){
+    return raw.map(item=>({
+      text:String(item?.text||""),
+      done:Boolean(item?.done)
+    }));
+  }
+  if(typeof raw==="string" && raw.trim()){
+    return raw.split(/\r?\n/)
+      .map(s=>s.trim())
+      .filter(Boolean)
+      .map(text=>({text,done:false}));
+  }
+  return [];
+}
+
+function saveWeeklyMemoItems(key,items){
+  data.weeklyMemos=data.weeklyMemos||{};
+  const cleaned=items
+    .map(item=>({text:String(item.text||""),done:Boolean(item.done)}))
+    .filter(item=>item.text.trim() || item.done);
+
+  if(cleaned.length){
+    data.weeklyMemos[key]=cleaned;
+  }else{
+    delete data.weeklyMemos[key];
+  }
+  persist();
+}
+
 function makeWeekMemoCell(mondayDate){
   data.weeklyMemos=data.weeklyMemos||{};
   const key=weekMemoKey(mondayDate);
+  let items=normalizeWeeklyMemoItems(data.weeklyMemos[key]);
+
   const cell=document.createElement("div");
   cell.className="week-memo-cell";
 
@@ -1777,22 +1827,86 @@ function makeWeekMemoCell(mondayDate){
   title.className="week-memo-title";
   title.textContent=weekRangeLabel(mondayDate);
 
-  const textarea=document.createElement("textarea");
-  textarea.className="week-memo-input";
-  textarea.placeholder="이번주 할일 메모";
-  textarea.value=data.weeklyMemos[key]||"";
-  textarea.addEventListener("input",()=>{
-    const value=textarea.value;
-    if(value.trim()){
-      data.weeklyMemos[key]=value;
-    }else{
-      delete data.weeklyMemos[key];
-    }
-    persist();
+  const list=document.createElement("div");
+  list.className="week-checklist";
+
+  const renderItems=()=>{
+    list.innerHTML="";
+
+    items.forEach((item,index)=>{
+      const row=document.createElement("div");
+      row.className=`week-check-row${item.done?" done":""}`;
+
+      const check=document.createElement("input");
+      check.type="checkbox";
+      check.checked=Boolean(item.done);
+      check.title="완료";
+      check.addEventListener("change",()=>{
+        items[index].done=check.checked;
+        row.classList.toggle("done",check.checked);
+        saveWeeklyMemoItems(key,items);
+      });
+
+      const input=document.createElement("input");
+      input.type="text";
+      input.className="week-check-text";
+      input.placeholder="할 일";
+      input.value=item.text||"";
+      input.addEventListener("input",()=>{
+        items[index].text=input.value;
+        saveWeeklyMemoItems(key,items);
+      });
+      input.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter"){
+          e.preventDefault();
+          items.splice(index+1,0,{text:"",done:false});
+          saveWeeklyMemoItems(key,items);
+          renderItems();
+          requestAnimationFrame(()=>{
+            const inputs=list.querySelectorAll(".week-check-text");
+            inputs[index+1]?.focus();
+          });
+        }
+      });
+
+      const del=document.createElement("button");
+      del.type="button";
+      del.className="week-check-delete";
+      del.textContent="×";
+      del.title="항목 삭제";
+      del.addEventListener("click",()=>{
+        items.splice(index,1);
+        saveWeeklyMemoItems(key,items);
+        renderItems();
+      });
+
+      row.appendChild(check);
+      row.appendChild(input);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  };
+
+  const add=document.createElement("button");
+  add.type="button";
+  add.className="week-check-add";
+  add.textContent="+ 할 일 추가";
+  add.addEventListener("click",()=>{
+    items.push({text:"",done:false});
+    saveWeeklyMemoItems(key,items);
+    renderItems();
+    requestAnimationFrame(()=>{
+      const inputs=list.querySelectorAll(".week-check-text");
+      inputs[inputs.length-1]?.focus();
+    });
   });
 
+  if(items.length===0) items=[{text:"",done:false}];
+  renderItems();
+
   cell.appendChild(title);
-  cell.appendChild(textarea);
+  cell.appendChild(list);
+  cell.appendChild(add);
   return cell;
 }
 
