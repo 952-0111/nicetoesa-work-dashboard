@@ -72,15 +72,20 @@
   .card.pension{background:var(--green-soft);border-color:#d8eee3}
   .section-title{font-size:16px;font-weight:900;margin:0 0 14px}
   .section-subtitle{font-size:13px;font-weight:900;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
-  .calendar-head,.calendar{display:grid;grid-template-columns:repeat(7,1fr)}
+  .calendar-scroll{overflow-x:auto;padding-bottom:3px}
+  .calendar-head,.calendar{
+    display:grid;
+    grid-template-columns:170px repeat(7,minmax(105px,1fr));
+    min-width:920px
+  }
   .calendar-head div{font-size:12px;text-align:center;color:var(--muted);padding:7px 0;font-weight:800}
+  .calendar-head .memo-head{text-align:left;padding-left:10px;color:#867132}
   .calendar-head .sat{color:var(--blue)}
   .calendar-head .sun{color:var(--red)}
   .day{
     min-height:112px;border-top:1px solid var(--line);border-left:1px solid var(--line);
     padding:9px;cursor:pointer;position:relative;background:#fff
   }
-  .day:nth-child(7n+1){border-left:none}
   .day:hover{background:#fafbfc}
   .day.other{background:#fbfbfc}
   .day.other .num{opacity:.42}
@@ -104,6 +109,36 @@
   .chip.ot{background:var(--orange-soft);color:var(--orange)}
   .chip.note{background:var(--blue-soft);color:#275eae}
   .chip.holiday{background:var(--red-soft);color:var(--red);font-weight:900}
+
+  .week-memo-cell{
+    min-height:112px;border-top:1px solid var(--line);padding:8px;background:#fffdf3
+  }
+  .week-memo-title{
+    font-size:10px;font-weight:900;color:#8a7430;margin-bottom:5px
+  }
+  .week-memo-input{
+    width:100%;height:76px;min-height:76px;padding:7px 8px;resize:none;
+    border:1px solid #eadc9f;border-radius:9px;background:#fffef8;
+    color:#565042;font-size:11px;line-height:1.45
+  }
+  .week-memo-input:focus{
+    border-color:#dfc75d;box-shadow:0 0 0 3px rgba(242,201,76,.18)
+  }
+  .payday-star{
+    position:absolute;right:8px;top:8px;color:#ef72a5;font-size:15px;
+    line-height:1;filter:drop-shadow(0 1px 0 rgba(239,114,165,.12))
+  }
+  .payday-chip{
+    background:#fff0f6;color:#d84b87;font-weight:900
+  }
+  .mini-day.payday::after{
+    content:"★";position:absolute;right:1px;top:-2px;color:#ef72a5;
+    font-size:7px;line-height:1
+  }
+  .salary-source-note{
+    margin-top:6px;color:var(--muted);font-size:11px;line-height:1.5
+  }
+
   .side-stack{display:flex;flex-direction:column;gap:20px}
   .field{margin-bottom:13px}
   label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
@@ -418,6 +453,7 @@
 
       <div class="annual-legend">
         <span><span class="legend-dot" style="background:#F2C94C"></span>일일업무일지 작성 완료</span>
+        <span style="color:#ef72a5">★ 월급날</span>
         <span style="color:var(--blue)">토요일</span>
         <span style="color:var(--red)">일요일 · 공휴일</span>
       </div>
@@ -437,7 +473,7 @@
           <div class="value" id="otHoursOnly">0시간</div>
         </div>
         <div class="card highlight">
-          <div class="label">이번 달 예상 야근비</div>
+          <div class="label">다음달 지급 예정 야근비</div>
           <div class="value" id="otPayOnly">0원</div>
         </div>
       </section>
@@ -448,12 +484,15 @@
           <div class="unsupported" id="unsupportedHoliday">
             이 연도는 음력·대체공휴일 전체 데이터가 내장되어 있지 않아 고정일 공휴일만 표시될 수 있어.
           </div>
-          <div class="calendar-head">
-            <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div><div class="sun">일</div>
+          <div class="calendar-scroll">
+            <div class="calendar-head">
+              <div class="memo-head">이번주 할일</div>
+              <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div><div class="sun">일</div>
+            </div>
+            <div class="calendar" id="calendar"></div>
           </div>
-          <div class="calendar" id="calendar"></div>
           <div class="help" style="margin-top:12px">
-            개나리색 점은 내가 일일업무일지를 작성한 날이야. 야근은 19:00~22:00 사이의 완료된 1시간 단위만 인정하며 하루 최대 3시간으로 자동 계산돼.
+            개나리색 점은 일일업무일지 작성 완료, 분홍색 ★은 월급날이야. 월급날이 토·일·공휴일이면 직전 평일로 자동 조정돼. 월요일 왼쪽의 주간메모는 입력 즉시 자동 저장돼. 야근은 19:00~22:00 사이의 완료된 1시간 단위만 인정하며 하루 최대 3시간으로 자동 계산돼.
           </div>
         </div>
       </section>
@@ -547,7 +586,7 @@
           <div class="value" id="fixedPay">0원</div>
         </div>
         <div class="card">
-          <div class="label">이번 달 야근 / 야근비</div>
+          <div class="label">전월 야근 / 이번달 지급 야근비</div>
           <div class="value" id="otSummary">0h · 0원</div>
         </div>
         <div class="card deduct">
@@ -575,8 +614,15 @@
               <div class="field"><label for="technicalAllowance">기술수당</label><input id="technicalAllowance" type="number" min="0" step="1000" /></div>
             </div>
             <div class="row">
+              <div class="field"><label for="positionAllowance">직급수당</label><input id="positionAllowance" type="number" min="0" step="1000" /></div>
               <div class="field"><label for="qualificationAllowance">자격수당</label><input id="qualificationAllowance" type="number" min="0" step="1000" /></div>
+            </div>
+            <div class="row">
               <div class="field"><label for="serviceAllowance">근속수당</label><input id="serviceAllowance" type="number" min="0" step="1000" /></div>
+              <div class="field">
+                <label for="payDay">월급날 (매월)</label>
+                <input id="payDay" type="number" min="1" max="31" step="1" placeholder="예: 25" />
+              </div>
             </div>
             <div class="row">
               <div class="field"><label for="jobDevelopment">직무개발비</label><input id="jobDevelopment" type="number" min="0" step="1000" /></div>
@@ -638,14 +684,14 @@
 
         <section class="panel">
           <div class="panel-inner">
-            <h2 class="section-title">이번 달 급여 예상</h2>
+            <h2 class="section-title" id="salaryMonthTitle">이번 달 급여 예상</h2>
             <div class="pay-summary" id="payBreakdown"></div>
             <div class="settings-note" style="margin-top:16px">
               실수령 예상액 = 지급항목 합계 + 야근비 − 공제합계.<br>
               공제액은 실제 급여명세서 금액을 직접 입력하는 방식이야.
             </div>
             <div class="settings-note holiday-note" style="margin-top:8px">
-              일일업무일지에 입력한 출·퇴근시간으로 야근시간을 자동 계산하고, 그 시간이 이 페이지의 야근비 계산에 연결돼.
+              <span id="salaryOvertimeSourceNote">전월 일일업무일지의 야근시간이 이번 달 월급의 야근비로 반영돼.</span>
             </div>
           </div>
         </section>
@@ -772,6 +818,7 @@ const defaultSettings = {
   onboardingDone:false,
   basicSalary:0,
   technicalAllowance:0,
+  positionAllowance:0,
   qualificationAllowance:0,
   serviceAllowance:0,
   jobDevelopment:0,
@@ -793,10 +840,11 @@ const defaultSettings = {
   pensionType:"미설정",
   retirementMonthly:0,
   retirementBalance:0,
-  totalAnnualLeave:0
+  totalAnnualLeave:0,
+  payDay:25
 };
 
-const defaultData = { settings:{...defaultSettings}, records:{}, dailyLogs:{} };
+const defaultData = { settings:{...defaultSettings}, records:{}, dailyLogs:{}, weeklyMemos:{} };
 
 /* 2026~2027 대한민국 공휴일
    2026년에는 노동절·제헌절 공휴일 지정 등 최신 변경을 반영.
@@ -901,7 +949,8 @@ function migrateV1(old){
   const migrated = {
     settings:{...defaultSettings},
     records: old?.records || {},
-    dailyLogs: old?.dailyLogs || {}
+    dailyLogs: old?.dailyLogs || {},
+    weeklyMemos: old?.weeklyMemos || {}
   };
   if(old?.settings){
     migrated.settings.basicSalary = Number(old.settings.monthlySalary || 0);
@@ -920,7 +969,8 @@ function loadData(){
       return {
         settings:{...defaultSettings,...(parsed.settings||{})},
         records:parsed.records||{},
-        dailyLogs:parsed.dailyLogs||{}
+        dailyLogs:parsed.dailyLogs||{},
+        weeklyMemos:parsed.weeklyMemos||{}
       };
     }
     const old = localStorage.getItem(OLD_STORAGE_KEY);
@@ -960,7 +1010,7 @@ function monthRecords(){
 }
 
 const earningKeys=[
-  "basicSalary","technicalAllowance","qualificationAllowance","serviceAllowance",
+  "basicSalary","technicalAllowance","positionAllowance","qualificationAllowance","serviceAllowance",
   "jobDevelopment","transport","meal"
 ];
 const deductionKeys=[
@@ -970,7 +1020,8 @@ const deductionKeys=[
 
 function totals(){
   const s=data.settings;
-  let hours=monthlyOvertimeHours();
+  const sourceMonth=payrollOvertimeMonth();
+  let hours=overtimeHoursForMonth(sourceMonth);
   const overtimePay=hours*Number(s.hourlyOvertime||0);
   const fixedPay=earningKeys.reduce((sum,k)=>sum+Number(s[k]||0),0);
   const deductions=deductionKeys.reduce((sum,k)=>sum+Number(s[k]||0),0);
@@ -987,10 +1038,25 @@ function renderSummary(){
   $("netPay").textContent=won(t.net);
   $("pensionMonthly").textContent=won(data.settings.retirementMonthly);
 
+  // 월간일정표에서는 '현재 보고 있는 달'의 야근 실적을 보여준다.
+  const currentHours=monthlyOvertimeHours();
+  const currentPay=currentHours*Number(data.settings.hourlyOvertime||0);
   const otHoursOnly=$("otHoursOnly");
   const otPayOnly=$("otPayOnly");
-  if(otHoursOnly) otHoursOnly.textContent=`${t.hours.toLocaleString("ko-KR")}시간`;
-  if(otPayOnly) otPayOnly.textContent=won(t.overtimePay);
+  if(otHoursOnly) otHoursOnly.textContent=`${currentHours.toLocaleString("ko-KR")}시간`;
+  if(otPayOnly) otPayOnly.textContent=won(currentPay);
+
+  const salaryTitle=$("salaryMonthTitle");
+  const salaryNote=$("salaryOvertimeSourceNote");
+  const sourceMonth=payrollOvertimeMonth();
+  if(salaryTitle){
+    salaryTitle.textContent=`${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월 급여 예상`;
+  }
+  if(salaryNote){
+    salaryNote.textContent=
+      `${sourceMonth.getFullYear()}년 ${sourceMonth.getMonth()+1}월 야근비가 `+
+      `${viewDate.getFullYear()}년 ${viewDate.getMonth()+1}월 월급에 포함돼.`;
+  }
 }
 
 function renderPayBreakdown(){
@@ -999,6 +1065,7 @@ function renderPayBreakdown(){
   const labels={
     basicSalary:"기본급",
     technicalAllowance:"기술수당",
+    positionAllowance:"직급수당",
     qualificationAllowance:"자격수당",
     serviceAllowance:"근속수당",
     jobDevelopment:"직무개발비",
@@ -1016,7 +1083,8 @@ function renderPayBreakdown(){
   earningKeys.forEach(k=>{
     rows += `<div>${labels[k]}</div><div class="amount">${won(s[k])}</div>`;
   });
-  rows += `<div>야근비 (${t.hours}h)</div><div class="amount">${won(t.overtimePay)}</div>`;
+  const sourceMonth=payrollOvertimeMonth();
+  rows += `<div>${sourceMonth.getMonth()+1}월 야근비 (${t.hours}h)</div><div class="amount">${won(t.overtimePay)}</div>`;
   rows += `<div class="total">총 지급액</div><div class="amount total">${won(t.gross)}</div>`;
   deductionKeys.forEach(k=>{
     rows += `<div>${labels[k]}</div><div class="amount">− ${won(s[k])}</div>`;
@@ -1178,8 +1246,10 @@ function getMyDailySummary(key){
   };
 }
 
-function monthlyOvertimeHours(){
-  const prefix=`${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,"0")}`;
+function overtimeHoursForMonth(monthDate){
+  const y=monthDate.getFullYear();
+  const m=monthDate.getMonth();
+  const prefix=`${y}-${String(m+1).padStart(2,"0")}`;
   let hours=0;
 
   if(teamCloud.configured && teamCloud.user){
@@ -1201,6 +1271,14 @@ function monthlyOvertimeHours(){
   const mcap=Number(data.settings.monthlyCap||0);
   if(mcap>0) hours=Math.min(hours,mcap);
   return Math.round(hours*100)/100;
+}
+
+function monthlyOvertimeHours(){
+  return overtimeHoursForMonth(viewDate);
+}
+
+function payrollOvertimeMonth(){
+  return new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);
 }
 
 function updateDailyOvertimePreview(){
@@ -1520,6 +1598,14 @@ async function renderDailyLogPage(){
   }
 }
 
+function returnToMonthlyAfterDailySave(){
+  const d=new Date(dailyLogDate+"T00:00:00");
+  viewDate=new Date(d.getFullYear(),d.getMonth(),1);
+  renderAll();
+  const monthlyBtn=document.querySelector('[data-page="schedulePage"]');
+  if(monthlyBtn) monthlyBtn.click();
+}
+
 async function saveMyDailyLog(){
   const startTime=$("daily_start_time")?.value||null;
   const endTime=$("daily_end_time")?.value||null;
@@ -1562,6 +1648,7 @@ async function saveMyDailyLog(){
     renderLeavePage();
     setDailyMessage(`내 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
     await loadCloudDaily();
+    returnToMonthlyAfterDailySave();
   }else{
     data.dailyLogs=data.dailyLogs||{};
     data.dailyLogs[dailyLogDate]=payload;
@@ -1574,6 +1661,7 @@ async function saveMyDailyLog(){
     renderPayBreakdown();
     renderLeavePage();
     setDailyMessage(`이 브라우저에 업무일지를 저장했어. 퇴근 ${endTime||"-"} → 인정 야근 ${formatHours(overtimeHours)}시간`);
+    returnToMonthlyAfterDailySave();
   }
 }
 
@@ -1595,17 +1683,118 @@ async function initTeamCloud(){
   const {data:{session}}=await teamCloud.client.auth.getSession();
   teamCloud.user=session?.user||null;
 
+  if(teamCloud.user){
+    await syncMyCloudProfile();
+    await loadMyLoggedDates(viewDate.getFullYear());
+    const sourceMonth=payrollOvertimeMonth();
+    if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
+      await loadMyLoggedDates(sourceMonth.getFullYear());
+    }
+    renderAll();
+  }
+
   teamCloud.client.auth.onAuthStateChange(async(_event,session)=>{
     teamCloud.user=session?.user||null;
     updateSyncUi();
-    if(teamCloud.user) await syncMyCloudProfile();
-    renderDailyLogPage();
+    if(teamCloud.user){
+      await syncMyCloudProfile();
+      await loadMyLoggedDates(viewDate.getFullYear());
+      const sourceMonth=payrollOvertimeMonth();
+      if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
+        await loadMyLoggedDates(sourceMonth.getFullYear());
+      }
+      renderAll();
+    }else{
+      renderAll();
+    }
+    if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
   });
 
   updateSyncUi();
-  renderDailyLogPage();
+  if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
 }
 
+
+
+function effectivePaydayDate(year,month){
+  const configured=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
+  const lastDay=new Date(year,month+1,0).getDate();
+
+  // 설정일이 해당 월에 없으면 우선 그 달의 말일로 맞춘다.
+  let d=new Date(year,month,Math.min(configured,lastDay));
+
+  // 토/일/대한민국 공휴일이면 직전 평일까지 계속 당긴다.
+  while(
+    d.getDay()===0 ||
+    d.getDay()===6 ||
+    Boolean(getHoliday(dateKey(d)))
+  ){
+    d.setDate(d.getDate()-1);
+  }
+
+  return d;
+}
+
+function effectivePayday(year,month){
+  return effectivePaydayDate(year,month).getDate();
+}
+
+function isPaydayDate(d){
+  const payday=effectivePaydayDate(d.getFullYear(),d.getMonth());
+  return dateKey(d)===dateKey(payday);
+}
+
+
+function paydayLabelForDate(d){
+  const configured=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
+  const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const nominalDay=Math.min(configured,lastDay);
+  const effective=effectivePaydayDate(d.getFullYear(),d.getMonth());
+
+  if(effective.getDate()!==nominalDay){
+    return `월급날 (원래 ${nominalDay}일 → 휴일로 앞당김)`;
+  }
+  return "월급날";
+}
+
+function weekMemoKey(mondayDate){
+  return dateKey(mondayDate);
+}
+
+function weekRangeLabel(mondayDate){
+  const sunday=new Date(mondayDate);
+  sunday.setDate(mondayDate.getDate()+6);
+  return `${mondayDate.getMonth()+1}/${mondayDate.getDate()} ~ ${sunday.getMonth()+1}/${sunday.getDate()}`;
+}
+
+function makeWeekMemoCell(mondayDate){
+  data.weeklyMemos=data.weeklyMemos||{};
+  const key=weekMemoKey(mondayDate);
+  const cell=document.createElement("div");
+  cell.className="week-memo-cell";
+
+  const title=document.createElement("div");
+  title.className="week-memo-title";
+  title.textContent=weekRangeLabel(mondayDate);
+
+  const textarea=document.createElement("textarea");
+  textarea.className="week-memo-input";
+  textarea.placeholder="이번주 할일 메모";
+  textarea.value=data.weeklyMemos[key]||"";
+  textarea.addEventListener("input",()=>{
+    const value=textarea.value;
+    if(value.trim()){
+      data.weeklyMemos[key]=value;
+    }else{
+      delete data.weeklyMemos[key];
+    }
+    persist();
+  });
+
+  cell.appendChild(title);
+  cell.appendChild(textarea);
+  return cell;
+}
 
 function renderAnnualCalendar(){
   const wrap=$("annualCalendar");
@@ -1659,6 +1848,10 @@ function renderAnnualCalendar(){
         if(["연차","오전연차","오후연차"].includes(summary.work_status)) bits.push(summary.work_status==="연차"?"하루 연차":summary.work_status);
         day.title=[getHoliday(key),...bits].filter(Boolean).join(" · ");
       }
+      if(d.getMonth()===month && isPaydayDate(d)){
+        day.classList.add("payday");
+        day.title=[day.title,paydayLabelForDate(d)].filter(Boolean).join(" · ");
+      }
       if(key===todayKey) day.classList.add("today");
 
       days.appendChild(day);
@@ -1689,48 +1882,69 @@ function renderCalendar(){
   const cal=$("calendar");
   cal.innerHTML="";
 
-  for(let i=0;i<42;i++){
-    const d=new Date(start);
-    d.setDate(start.getDate()+i);
-    const key=dateKey(d);
-    const holiday=getHoliday(key);
-    const dow=d.getDay();
-    const summary=getMyDailySummary(key);
+  for(let weekIndex=0;weekIndex<6;weekIndex++){
+    const monday=new Date(start);
+    monday.setDate(start.getDate()+weekIndex*7);
+    cal.appendChild(makeWeekMemoCell(monday));
 
-    const cell=document.createElement("div");
-    cell.className="day";
-    if(d.getMonth()!==m) cell.classList.add("other");
-    if(key===today) cell.classList.add("today");
-    if(dow===6) cell.classList.add("saturday");
-    if(dow===0) cell.classList.add("sunday");
-    if(holiday) cell.classList.add("holiday");
-    if(hasMyDailyLog(key)) cell.classList.add("has-daily-log");
+    for(let dayIndex=0;dayIndex<7;dayIndex++){
+      const d=new Date(monday);
+      d.setDate(monday.getDate()+dayIndex);
 
-    cell.innerHTML=`<div class="num">${d.getDate()}</div>`;
+      const key=dateKey(d);
+      const holiday=getHoliday(key);
+      const dow=d.getDay();
+      const summary=getMyDailySummary(key);
 
-    if(holiday){
-      const c=document.createElement("div");
-      c.className="chip holiday";
-      c.textContent=holiday;
-      cell.appendChild(c);
+      const cell=document.createElement("div");
+      cell.className="day";
+      if(d.getMonth()!==m) cell.classList.add("other");
+      if(key===today) cell.classList.add("today");
+      if(dow===6) cell.classList.add("saturday");
+      if(dow===0) cell.classList.add("sunday");
+      if(holiday) cell.classList.add("holiday");
+      if(hasMyDailyLog(key)) cell.classList.add("has-daily-log");
+
+      cell.innerHTML=`<div class="num">${d.getDate()}</div>`;
+
+      if(d.getMonth()===m && isPaydayDate(d)){
+        const star=document.createElement("span");
+        star.className="payday-star";
+        star.textContent="★";
+        star.title=paydayLabelForDate(d);
+        cell.appendChild(star);
+
+        const payChip=document.createElement("div");
+        payChip.className="chip payday-chip";
+        payChip.textContent="★ 월급날";
+        payChip.title=paydayLabelForDate(d);
+        cell.appendChild(payChip);
+      }
+
+      if(holiday){
+        const c=document.createElement("div");
+        c.className="chip holiday";
+        c.textContent=holiday;
+        cell.appendChild(c);
+      }
+
+      if(Number(summary.overtime_hours)>0){
+        const c=document.createElement("div");
+        c.className="chip ot";
+        c.textContent=`야근 ${formatHours(summary.overtime_hours)}h`;
+        cell.appendChild(c);
+      }
+
+      if(["연차","오전연차","오후연차"].includes(summary.work_status)){
+        const c=document.createElement("div");
+        c.className="chip note";
+        c.textContent=summary.work_status==="연차"?"하루 연차":summary.work_status;
+        cell.appendChild(c);
+      }
+
+      cell.addEventListener("click",()=>openDailyLog(key));
+      cal.appendChild(cell);
     }
-
-    if(Number(summary.overtime_hours)>0){
-      const c=document.createElement("div");
-      c.className="chip ot";
-      c.textContent=`야근 ${formatHours(summary.overtime_hours)}h`;
-      cell.appendChild(c);
-    }
-
-    if(["연차","오전연차","오후연차"].includes(summary.work_status)){
-      const c=document.createElement("div");
-      c.className="chip note";
-      c.textContent=summary.work_status==="연차"?"하루 연차":summary.work_status;
-      cell.appendChild(c);
-    }
-
-    cell.addEventListener("click",()=>openDailyLog(key));
-    cal.appendChild(cell);
   }
 }
 
@@ -1784,6 +1998,7 @@ $("saveSettings").addEventListener("click",()=>{
   data.settings.regularEndTime="18:00";
   data.settings.overtimeStartTime="19:00";
   data.settings.overtimeCutoffTime="22:00";
+  data.settings.payDay=Math.min(31,Math.max(1,Number(data.settings.payDay||25)));
   persist();
   renderAll();
   updateBranding();
@@ -1899,7 +2114,8 @@ $("importFile").addEventListener("change",async(e)=>{
     data={
       settings:{...defaultSettings,...obj.settings},
       records:obj.records,
-      dailyLogs:obj.dailyLogs||{}
+      dailyLogs:obj.dailyLogs||{},
+      weeklyMemos:obj.weeklyMemos||{}
     };
     persist();
     renderSettings();
@@ -1980,7 +2196,7 @@ $("resetAllData").addEventListener("click",()=>{
 
 // 상단 카테고리 탭 전환
 document.querySelectorAll(".top-tab").forEach(btn=>{
-  btn.addEventListener("click",()=>{
+  btn.addEventListener("click",async()=>{
     const pageId=btn.dataset.page;
     document.querySelectorAll(".top-tab").forEach(b=>b.classList.toggle("active",b===btn));
     document.querySelectorAll(".page-view").forEach(p=>p.classList.toggle("active",p.id===pageId));
@@ -1990,7 +2206,15 @@ document.querySelectorAll(".top-tab").forEach(btn=>{
 
     // 마지막으로 열어본 페이지 기억
     localStorage.setItem("myCompanyDashboard_lastPage",pageId);
-    if(pageId==="dailyLogPage") renderDailyLogPage();
+
+    if(pageId==="dailyLogPage") await renderDailyLogPage();
+
+    if(pageId==="salaryPage" && teamCloud.configured && teamCloud.user){
+      const sourceMonth=payrollOvertimeMonth();
+      await loadMyLoggedDates(sourceMonth.getFullYear());
+      renderSummary();
+      renderPayBreakdown();
+    }
   });
 });
 
