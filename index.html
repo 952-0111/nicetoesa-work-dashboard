@@ -487,6 +487,36 @@
   }
   .login-user-box strong{display:block;font-size:14px;margin-bottom:3px}
 
+
+  .shared-lock{padding:12px 14px;border:1px solid #d9e5ed;border-radius:12px;background:#f7fbfd;font-size:12px;color:#5a6973;line-height:1.55}
+  .file-upload-grid{display:grid;grid-template-columns:1fr 170px;gap:10px;align-items:end}
+  .file-list{display:flex;flex-direction:column;gap:8px}
+  .file-item{display:grid;grid-template-columns:minmax(220px,1.4fr) 100px 120px 105px auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff}
+  .file-name{font-weight:900;color:#31373d;word-break:break-all}.file-meta{font-size:10px;color:var(--muted)}
+  .file-category{display:inline-block;padding:4px 7px;border-radius:7px;background:#eef8fd;color:#4b9cc7;font-size:10px;font-weight:900;text-align:center}
+  .file-actions{display:flex;gap:5px;justify-content:flex-end}
+  .mini-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer}.mini-btn.danger{color:#bd4f4f}
+  .upload-progress{margin-top:9px;font-size:11px;color:var(--muted);min-height:16px}
+  .team-name-card{padding:13px;border:1px solid #dbe5ec;border-radius:13px;background:#f8fbfd;margin-bottom:14px}
+  .team-name-title{font-size:18px;font-weight:950;color:#2f3941;margin-bottom:5px}
+  .team-member-list{display:flex;flex-direction:column;gap:7px}
+  .team-member-row{display:grid;grid-template-columns:1fr 90px 110px;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
+  .team-member-name{font-weight:900}
+  .team-rank-badge,.payroll-badge{display:inline-block;padding:4px 7px;border-radius:7px;font-size:10px;font-weight:900;text-align:center}
+  .team-rank-badge{background:#eef7fc;color:#4c9dcc}.payroll-badge{background:#fff1f6;color:#c65483}
+  .payroll-manage-btn{border:1px solid #e5d5dd;background:#fff;border-radius:8px;padding:5px 7px;color:#a64c72;font-size:9px;font-weight:900;cursor:pointer}
+  .team-admin-note{font-size:10px;color:var(--muted);margin-top:8px}
+  .leave-request-grid{display:grid;grid-template-columns:160px 160px 1fr auto;gap:10px;align-items:end}
+  .leave-request-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .leave-request-row{display:grid;grid-template-columns:95px 100px 120px 1fr 70px;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;font-size:11px}
+  .leave-request-owner{font-weight:900}.leave-request-cancel{border:1px solid #efdddd;background:#fff;border-radius:8px;padding:5px 7px;color:#b95858;font-size:9px;font-weight:900;cursor:pointer}
+  .manager-panel{border:1px solid #ecdbe3;background:#fffafd;border-radius:14px;margin-bottom:16px}.manager-panel .panel-inner{padding:15px}
+  .manager-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.manager-title .badge{padding:4px 7px;border-radius:7px;background:#fff0f6;color:#bf527e;font-size:10px;font-weight:900}
+  .payroll-table-wrap{overflow-x:auto;margin-top:12px}.payroll-table{width:100%;min-width:760px;border-collapse:collapse;font-size:11px}
+  .payroll-table th,.payroll-table td{border-bottom:1px solid var(--line);padding:8px;text-align:right}.payroll-table th{background:#faf7f9;color:#666;font-size:10px}
+  .payroll-table th:first-child,.payroll-table td:first-child,.payroll-table th:nth-child(2),.payroll-table td:nth-child(2){text-align:left}.payroll-missing{color:#a3a8ae;font-style:italic}
+  @media(max-width:900px){.file-upload-grid,.leave-request-grid{grid-template-columns:1fr}.file-item{grid-template-columns:1fr 90px}.leave-request-row{grid-template-columns:90px 90px 1fr}.leave-request-row .leave-note{grid-column:1/-1}.team-member-row{grid-template-columns:1fr 80px}.team-member-row>:last-child{grid-column:1/-1}}
+
   footer{margin:24px 0 4px;color:var(--muted);font-size:11px;text-align:center}
   @media(max-width:1050px){
     .cards{grid-template-columns:repeat(3,1fr)}
@@ -522,6 +552,7 @@
       <div class="sub" id="appSubtitle">내 일정 · 팀 업무일지 · 야근 · 급여 · 연차를 한 곳에서 관리해.</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="icon-btn" id="teamInfoBtn">팀 정보</button>
       <div class="global-auth-wrap">
         <span class="global-auth-state" id="globalAuthState">팀 로그인 전</span>
         <button class="icon-btn" id="globalAuthBtn">팀 로그인</button>
@@ -542,6 +573,7 @@
     <button class="top-tab" data-page="schedulePage">월간일정표</button>
     <button class="top-tab" data-page="dailyLogPage">일일업무일지</button>
     <button class="top-tab" data-page="weeklyLogPage">주간업무일지</button>
+    <button class="top-tab" data-page="manualPage">메뉴얼 및 서식</button>
     <button class="top-tab" data-page="salaryPage">월급</button>
     <button class="top-tab" data-page="leavePage">연차</button>
   </nav>
@@ -651,8 +683,8 @@
               <select id="dailyWorkStatus">
                 <option value="정상근무">정상근무</option>
                 <option value="연차">하루 연차</option>
-                <option value="오전연차">오전연차</option>
-                <option value="오후연차">오후연차</option>
+                <option value="오전반차">오전반차</option>
+                <option value="오후반차">오후반차</option>
               </select>
             </div>
             <div class="auto-overtime-box">
@@ -724,6 +756,27 @@
       </section>
     </section>
 
+
+    <section class="page-view" id="manualPage">
+      <div class="page-heading"><div><h2>메뉴얼 및 서식</h2><p>팀에서 함께 쓰는 메뉴얼, 보고서 양식, 참고자료를 올리고 내려받아.</p></div></div>
+      <section class="panel"><div class="panel-inner">
+        <h2 class="section-title">공유 파일 업로드</h2>
+        <div id="manualLoginNotice" class="shared-lock">팀 계정으로 로그인하면 파일 업로드와 다운로드를 사용할 수 있어.</div>
+        <div id="manualUploadArea" style="display:none">
+          <div class="file-upload-grid">
+            <div class="field"><label for="manualFileInput">파일 선택</label><input id="manualFileInput" type="file"></div>
+            <div class="field"><label for="manualFileCategory">분류</label><select id="manualFileCategory"><option>메뉴얼</option><option>서식</option><option>참고자료</option><option>기타</option></select></div>
+          </div>
+          <div class="field" style="margin-top:10px"><label for="manualFileNote">설명 (선택)</label><input id="manualFileNote" type="text" maxlength="200" placeholder="예: 실시설계 보고서 표준 목차"></div>
+          <button class="btn primary" id="uploadManualFile" style="margin-top:10px">파일 업로드</button><div class="upload-progress" id="manualUploadMessage"></div>
+        </div>
+      </div></section>
+      <section class="panel" style="margin-top:14px"><div class="panel-inner">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><h2 class="section-title" style="margin:0">팀 공유 파일</h2><button class="btn" id="refreshManualFiles">새로고침</button></div>
+        <div class="file-list" id="manualFileList" style="margin-top:12px"><div class="empty">로그인 후 공유 파일을 불러올 수 있어.</div></div>
+      </div></section>
+    </section>
+
     <section class="page-view" id="salaryPage">
       <div class="page-heading">
         <div>
@@ -731,6 +784,14 @@
           <p>지급항목, 공제금액, 야근비와 퇴직연금을 관리해.</p>
         </div>
       </div>
+
+
+      <section class="manager-panel" id="payrollManagerPanel" style="display:none"><div class="panel-inner">
+        <div class="manager-title"><h2 class="section-title" style="margin:0">팀 급여 현황</h2><span class="badge">월급관리자 전용</span></div>
+        <div class="settings-note" style="margin-top:9px">일반 팀원은 다른 사람의 급여 데이터를 조회할 수 없고, 월급관리자로 지정된 계정만 이 표를 볼 수 있어. 각 팀원은 자신의 월급 페이지에서 <strong>급여 설정 저장</strong>을 한 번 해야 반영돼.</div>
+        <div class="payroll-table-wrap"><table class="payroll-table"><thead><tr><th>팀원</th><th>직급</th><th>고정지급</th><th>전월 야근</th><th>야근비</th><th>공제</th><th>예상 실수령</th></tr></thead><tbody id="teamPayrollBody"></tbody></table></div>
+        <div class="upload-progress" id="teamPayrollMessage"></div>
+      </div></section>
 
       <section class="cards">
         <div class="card">
@@ -860,7 +921,7 @@
 
       <div class="leave-summary-banner">
         <div class="big" id="leaveSentence">올해 연차 총 <strong>0일</strong> 중 <strong>0일</strong>을 썼고, 지금 <strong>0일</strong>이 남았어.</div>
-        <div class="small">하루 연차는 1일, 오전연차·오후연차는 각각 0.5일로 계산돼.</div>
+        <div class="small">하루 연차는 1일, 오전반차·오후반차는 각각 0.5일로 계산돼.</div>
         <div class="leave-progress"><div class="leave-progress-bar" id="leaveProgressBar"></div></div>
       </div>
 
@@ -878,6 +939,19 @@
           <div class="value" id="leaveRemaining">0일</div>
         </div>
       </section>
+
+
+      <section class="panel" style="margin-bottom:14px"><div class="panel-inner">
+        <h2 class="section-title">연차신청</h2>
+        <div class="leave-request-grid">
+          <div class="field"><label for="leaveRequestDate">사용일</label><input id="leaveRequestDate" type="date"></div>
+          <div class="field"><label for="leaveRequestType">구분</label><select id="leaveRequestType"><option value="연차">하루 연차</option><option value="오전반차">오전반차</option><option value="오후반차">오후반차</option></select></div>
+          <div class="field"><label for="leaveRequestNote">비고 (선택)</label><input id="leaveRequestNote" type="text" maxlength="200" placeholder="예: 병원 방문"></div>
+          <button class="btn primary" id="submitLeaveRequest">연차 신청</button>
+        </div>
+        <div class="settings-note" style="margin-top:10px">신청하면 해당 날짜의 일일업무일지 근무상태에도 자동 반영돼서 연차 사용량과 달력에 바로 표시돼.</div><div class="upload-progress" id="leaveRequestMessage"></div>
+      </div></section>
+      <section class="panel" style="margin-bottom:14px"><div class="panel-inner"><h2 class="section-title">팀 연차신청 현황</h2><div class="leave-request-list" id="teamLeaveRequestList"><div class="empty">팀 로그인 후 신청 내역을 볼 수 있어.</div></div></div></section>
 
       <div class="grid" style="grid-template-columns:.65fr 1.35fr">
         <section class="panel">
@@ -906,6 +980,17 @@
   </main>
 
 
+
+
+  <div class="modal-backdrop" id="teamModal" aria-hidden="true"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="teamModalTitle" style="max-width:650px">
+    <h2 id="teamModalTitle">팀 정보</h2><p class="lead">팀 이름과 현재 등록된 팀원, 직급, 월급관리자 권한을 확인해.</p>
+    <div id="teamModalLoggedOut" class="shared-lock">팀 계정으로 로그인하면 팀 정보를 볼 수 있어.</div>
+    <div id="teamModalLoggedIn" style="display:none">
+      <div class="team-name-card"><div class="team-name-title" id="teamNameDisplay">우리 팀</div><div id="teamNameManagerArea" style="display:none"><div class="field"><label for="teamNameInput">팀 이름</label><input id="teamNameInput" type="text" maxlength="50"></div><button class="btn primary" id="saveTeamName" style="margin-top:8px">팀 이름 저장</button></div><div class="team-admin-note" id="teamAdminNote"></div></div>
+      <div class="team-member-list" id="teamMemberList"></div>
+    </div>
+    <div class="modal-actions"><button class="btn" id="closeTeamModal">닫기</button></div>
+  </section></div>
 
   <div class="modal-backdrop" id="loginModal" aria-hidden="true">
     <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" style="max-width:520px">
@@ -1142,7 +1227,12 @@ let teamCloud = {
   channel:null,
   weeklyChannel:null,
   weeklyMembers:[],
-  weeklyLogs:[]
+  weeklyLogs:[],
+  teamName:"우리 팀",
+  teamRoles:[],
+  isPayrollManager:false,
+  teamFiles:[],
+  leaveRequests:[]
 };
 
 const $ = (id) => document.getElementById(id);
@@ -1229,6 +1319,28 @@ const deductionKeys=[
   "longTermCare","nationalPension","associationFee"
 ];
 
+
+const salaryShareKeys=[...earningKeys,...deductionKeys,"hourlyOvertime","monthlyCap","pensionType","retirementMonthly","retirementBalance","payDay"];
+function salarySettingsSnapshot(){const o={};salaryShareKeys.forEach(k=>o[k]=data.settings[k]??defaultSettings[k]);return o;}
+async function syncMySalaryProfile(){if(!teamCloud.client||!teamCloud.user)return;const {error}=await teamCloud.client.from("salary_profiles").upsert({user_id:teamCloud.user.id,settings:salarySettingsSnapshot(),updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)console.error(error);}
+function payrollForSharedSettings(settings,overtimeHours){const s={...defaultSettings,...(settings||{})};let hours=Math.max(0,Number(overtimeHours||0));const cap=Number(s.monthlyCap||0);if(cap>0)hours=Math.min(hours,cap);const fixedPay=earningKeys.reduce((a,k)=>a+Number(s[k]||0),0),deductions=deductionKeys.reduce((a,k)=>a+Number(s[k]||0),0),overtimePay=hours*Number(s.hourlyOvertime||0);return{hours,fixedPay,deductions,overtimePay,net:fixedPay+overtimePay-deductions};}
+async function loadPayrollManagerPanel(){
+  const panel=$("payrollManagerPanel");if(!panel)return;
+  if(!teamCloud.user||!teamCloud.isPayrollManager){panel.style.display="none";return;}
+  panel.style.display="block";$("teamPayrollMessage").textContent="팀 급여를 불러오는 중...";
+  const sm=payrollOvertimeMonth(),first=`${sm.getFullYear()}-${String(sm.getMonth()+1).padStart(2,"0")}-01`,last=dateKey(new Date(sm.getFullYear(),sm.getMonth()+1,0));
+  const [{data:p,error:pe},{data:s,error:se},{data:l,error:le}]=await Promise.all([
+    teamCloud.client.from("profiles").select("user_id,display_name,job_title,sort_order"),
+    teamCloud.client.from("salary_profiles").select("user_id,settings,updated_at"),
+    teamCloud.client.from("daily_logs").select("user_id,work_date,overtime_hours").gte("work_date",first).lte("work_date",last)
+  ]);
+  if(pe||se||le){console.error(pe||se||le);$("teamPayrollMessage").textContent="팀 급여를 불러오지 못했어. v12 SQL 업데이트를 확인해줘.";return;}
+  const smap=new Map((s||[]).map(x=>[x.user_id,x])),omap=new Map();(l||[]).forEach(x=>omap.set(x.user_id,(omap.get(x.user_id)||0)+Number(x.overtime_hours||0)));
+  const body=$("teamPayrollBody");body.innerHTML="";
+  sortTeamMembers(p||[]).forEach(m=>{const tr=document.createElement("tr"),sp=smap.get(m.user_id);if(!sp)tr.innerHTML=`<td>${escapeHtml(m.display_name||"이름 미설정")}</td><td>${escapeHtml(m.job_title||"-")}</td><td colspan="5" class="payroll-missing">급여 설정 미등록</td>`;else{const c=payrollForSharedSettings(sp.settings,omap.get(m.user_id)||0);tr.innerHTML=`<td>${escapeHtml(m.display_name||"이름 미설정")}</td><td>${escapeHtml(m.job_title||"-")}</td><td>${won(c.fixedPay)}</td><td>${formatHours(c.hours)}h</td><td>${won(c.overtimePay)}</td><td>${won(c.deductions)}</td><td><strong>${won(c.net)}</strong></td>`;}body.appendChild(tr);});
+  $("teamPayrollMessage").textContent=`${sm.getFullYear()}년 ${sm.getMonth()+1}월 야근 반영 기준`;
+}
+
 function totals(){
   const s=data.settings;
   const sourceMonth=payrollOvertimeMonth();
@@ -1307,9 +1419,14 @@ function renderPayBreakdown(){
 
 
 
+
+function normalizeLeaveStatus(status){if(status==="오전연차")return"오전반차";if(status==="오후연차")return"오후반차";return status||"정상근무";}
+function leaveStatusLabel(status){const s=normalizeLeaveStatus(status);return s==="연차"?"하루 연차":s;}
+
 function leaveDaysForCategory(category){
-  if(category==="연차") return 1;
-  if(category==="오전연차" || category==="오후연차" || category==="반차") return 0.5;
+  const value=normalizeLeaveStatus(category);
+  if(value==="연차") return 1;
+  if(value==="오전반차" || value==="오후반차" || value==="반차") return 0.5;
   return 0;
 }
 
@@ -1348,7 +1465,7 @@ function annualLeaveStats(year=new Date().getFullYear()){
       used+=days;
       history.push({
         date,
-        category:rec.category==="연차"?"하루 연차":rec.category==="반차"?"반차":rec.category,
+        category:rec.category==="반차"?"반차":leaveStatusLabel(rec.category),
         memo:"",
         days
       });
@@ -1400,6 +1517,12 @@ function renderLeavePage(){
 
 
 
+
+
+function setLeaveRequestMessage(t,e=false){const x=$("leaveRequestMessage");if(x){x.textContent=t||"";x.style.color=e?"var(--red)":"var(--muted)";}}
+async function loadLeaveRequests(){const list=$("teamLeaveRequestList");if(!list)return;if(!teamCloud.user){list.innerHTML='<div class="empty">팀 로그인 후 신청 내역을 볼 수 있어.</div>';return;}const y=new Date().getFullYear();const[{data:r,error:re},{data:m,error:me}]=await Promise.all([teamCloud.client.from("leave_requests").select("id,user_id,leave_date,leave_type,note,status,created_at").gte("leave_date",`${y}-01-01`).lte("leave_date",`${y}-12-31`).order("leave_date",{ascending:true}),teamCloud.client.from("profiles").select("user_id,display_name")]);if(re||me){list.innerHTML='<div class="empty">연차신청 내역을 불러오지 못했어. v12 SQL 업데이트를 확인해줘.</div>';return;}teamCloud.leaveRequests=r||[];const mm=new Map((m||[]).map(x=>[x.user_id,x.display_name]));list.innerHTML="";if(!r?.length){list.innerHTML='<div class="empty">올해 등록된 연차신청이 없어.</div>';return;}r.forEach(x=>{const mine=x.user_id===teamCloud.user.id,d=document.createElement("div");d.className="leave-request-row";d.innerHTML=`<div><strong>${x.leave_date.slice(5).replace("-","/")}</strong></div><div class="leave-request-owner">${escapeHtml(mm.get(x.user_id)||"팀원")}</div><div><span class="leave-type-badge">${escapeHtml(leaveStatusLabel(x.leave_type))}</span></div><div class="leave-note">${escapeHtml(x.note||"-")}</div><div>${mine?`<button class="leave-request-cancel" data-cancel-leave="${x.id}">취소</button>`:"신청"}</div>`;list.appendChild(d);});list.querySelectorAll("[data-cancel-leave]").forEach(b=>b.addEventListener("click",()=>cancelLeaveRequest(Number(b.dataset.cancelLeave))));}
+async function submitLeaveRequest(){if(!teamCloud.user){setLeaveRequestMessage("팀 로그인 후 사용할 수 있어.",true);return;}const d=$("leaveRequestDate").value,t=normalizeLeaveStatus($("leaveRequestType").value),n=$("leaveRequestNote").value.trim();if(!d){setLeaveRequestMessage("사용일을 선택해줘.",true);return;}const b=$("submitLeaveRequest");b.disabled=true;b.textContent="신청 중...";const{error:re}=await teamCloud.client.from("leave_requests").upsert({user_id:teamCloud.user.id,leave_date:d,leave_type:t,note:n,status:"신청"},{onConflict:"user_id,leave_date"});if(re){setLeaveRequestMessage("연차신청 저장 실패",true);b.disabled=false;b.textContent="연차 신청";return;}const{error:le}=await teamCloud.client.from("daily_logs").upsert({user_id:teamCloud.user.id,work_date:d,work_status:t,updated_at:new Date().toISOString()},{onConflict:"user_id,work_date"});if(le)setLeaveRequestMessage("신청은 됐지만 일일업무일지 반영 실패",true);else{teamCloud.myLoggedDates.add(d);teamCloud.myWorkStatusByDate.set(d,t);setLeaveRequestMessage(`${d} ${leaveStatusLabel(t)} 신청 완료!`);}$("leaveRequestNote").value="";b.disabled=false;b.textContent="연차 신청";await loadLeaveRequests();renderCalendar();renderAnnualCalendar();renderLeavePage();}
+async function cancelLeaveRequest(id){const r=teamCloud.leaveRequests.find(x=>x.id===id);if(!r||r.user_id!==teamCloud.user.id||!confirm(`${r.leave_date} ${leaveStatusLabel(r.leave_type)} 신청을 취소할까?`))return;const{error:e}=await teamCloud.client.from("leave_requests").delete().eq("id",id).eq("user_id",teamCloud.user.id);if(e){setLeaveRequestMessage("취소 실패",true);return;}await teamCloud.client.from("daily_logs").update({work_status:"정상근무",updated_at:new Date().toISOString()}).eq("user_id",teamCloud.user.id).eq("work_date",r.leave_date).eq("work_status",r.leave_type);teamCloud.myWorkStatusByDate.set(r.leave_date,"정상근무");setLeaveRequestMessage("연차신청을 취소했어.");await loadLeaveRequests();renderCalendar();renderAnnualCalendar();renderLeavePage();}
 
 function parseTimeMinutes(value){
   if(!value || !/^\d{2}:\d{2}$/.test(value)) return null;
@@ -1861,6 +1984,25 @@ function updateSyncUi(){
   }
 }
 
+
+function updateTeamInfoButton(){const b=$("teamInfoBtn");if(b)b.textContent=teamCloud.user?`팀 · ${teamCloud.teamName||"우리 팀"}`:"팀 정보";}
+async function loadTeamMeta(){
+  if(!teamCloud.client||!teamCloud.user){teamCloud.teamName="우리 팀";teamCloud.teamRoles=[];teamCloud.isPayrollManager=false;updateTeamInfoButton();return;}
+  const [{data:s,error:se},{data:r,error:re}]=await Promise.all([teamCloud.client.from("team_settings").select("id,team_name").eq("id",1).maybeSingle(),teamCloud.client.from("team_roles").select("user_id,payroll_manager")]);
+  if(!se&&s?.team_name)teamCloud.teamName=s.team_name;if(!re)teamCloud.teamRoles=r||[];teamCloud.isPayrollManager=teamCloud.teamRoles.some(x=>x.user_id===teamCloud.user.id&&x.payroll_manager===true);updateTeamInfoButton();
+}
+async function openTeamModal(){
+  $("teamModal").classList.add("open");$("teamModal").setAttribute("aria-hidden","false");
+  if(!teamCloud.user){$("teamModalLoggedOut").style.display="block";$("teamModalLoggedIn").style.display="none";return;}
+  $("teamModalLoggedOut").style.display="none";$("teamModalLoggedIn").style.display="block";await loadTeamMeta();
+  const {data:m,error}=await teamCloud.client.from("profiles").select("user_id,display_name,job_title,sort_order");if(error){$("teamMemberList").innerHTML='<div class="empty">팀원 목록을 불러오지 못했어.</div>';return;}
+  $("teamNameDisplay").textContent=teamCloud.teamName;$("teamNameInput").value=teamCloud.teamName;$("teamNameManagerArea").style.display=teamCloud.isPayrollManager?"block":"none";$("teamAdminNote").textContent=teamCloud.isPayrollManager?"월급관리자는 팀 이름과 월급관리자 권한을 변경할 수 있어.":"팀 이름과 월급관리자 지정은 월급관리자만 변경할 수 있어.";
+  const rm=new Map(teamCloud.teamRoles.map(x=>[x.user_id,!!x.payroll_manager])),list=$("teamMemberList");list.innerHTML="";
+  sortTeamMembers(m||[]).forEach(x=>{const im=rm.get(x.user_id)===true,row=document.createElement("div");row.className="team-member-row";const a=teamCloud.isPayrollManager?`<button class="payroll-manage-btn" data-user="${x.user_id}" data-enabled="${im}">${im?"관리자 해제":"월급관리자 지정"}</button>`:(im?'<span class="payroll-badge">월급관리자</span>':'<span></span>');row.innerHTML=`<div><div class="team-member-name">${escapeHtml(x.display_name||"이름 미설정")}</div>${im?'<span class="payroll-badge" style="margin-top:4px">월급관리자</span>':""}</div><span class="team-rank-badge">${escapeHtml(x.job_title||"직급 미설정")}</span>${a}`;list.appendChild(row);});
+  if(teamCloud.isPayrollManager)list.querySelectorAll(".payroll-manage-btn").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;const {error:e}=await teamCloud.client.rpc("set_payroll_manager",{target_user_id:b.dataset.user,enabled:b.dataset.enabled!=="true"});if(e){alert(e.message||"권한 변경 실패");b.disabled=false;return;}await loadTeamMeta();await openTeamModal();if($("salaryPage")?.classList.contains("active"))await loadPayrollManagerPanel();}));
+}
+function closeTeamModal(){$("teamModal").classList.remove("open");$("teamModal").setAttribute("aria-hidden","true");}
+
 async function syncMyCloudProfile(){
   if(!teamCloud.client || !teamCloud.user) return;
   const display=(data.settings.userName||"").trim() || (teamCloud.user.email||"팀원").split("@")[0];
@@ -1891,7 +2033,7 @@ async function loadCloudDaily(){
   teamCloud.logs=logs||[];
   renderDailyRows(teamCloud.members,teamCloud.logs,teamCloud.user.id);
   const mine=teamCloud.logs.find(x=>x.user_id===teamCloud.user.id);
-  if($("dailyWorkStatus")) $("dailyWorkStatus").value=mine?.work_status||"정상근무";
+  if($("dailyWorkStatus")) $("dailyWorkStatus").value=normalizeLeaveStatus(mine?.work_status||"정상근무");
   updateDailyOvertimePreview();
   setDailyMessage(`${teamCloud.members.length}명의 팀 계정과 연결됨`);
   subscribeDailyRealtime();
@@ -1921,7 +2063,7 @@ async function renderDailyLogPage(){
   updateSyncUi();
 
   const currentSummary=getMyDailySummary(dailyLogDate);
-  if($("dailyWorkStatus")) $("dailyWorkStatus").value=currentSummary.work_status||"정상근무";
+  if($("dailyWorkStatus")) $("dailyWorkStatus").value=normalizeLeaveStatus(currentSummary.work_status||"정상근무");
   if($("dailyOvertimeRule")) $("dailyOvertimeRule").textContent="20:00=1h · 21:00=2h · 22:00=3h";
 
   if(teamCloud.configured && teamCloud.user){
@@ -1932,7 +2074,7 @@ async function renderDailyLogPage(){
     const member=localDailyMember();
     const localLog={user_id:"local",...getLocalDailyLog()};
     renderDailyRows([member],[localLog],"local");
-    if($("dailyWorkStatus")) $("dailyWorkStatus").value=localLog.work_status||data.records?.[dailyLogDate]?.category||"정상근무";
+    if($("dailyWorkStatus")) $("dailyWorkStatus").value=normalizeLeaveStatus(localLog.work_status||data.records?.[dailyLogDate]?.category||"정상근무");
     setDailyMessage(teamCloud.configured ? "팀 계정 로그인 전에는 이 화면의 내용이 팀과 공유되지 않아." : "현재 로컬 임시 저장 모드야.");
   }
 }
@@ -2005,6 +2147,15 @@ async function saveMyDailyLog(){
 }
 
 
+
+function formatFileSize(bytes){const n=Number(bytes||0);if(n<1024)return`${n} B`;if(n<1048576)return`${(n/1024).toFixed(1)} KB`;return`${(n/1048576).toFixed(1)} MB`;}
+function setManualMessage(t,e=false){const x=$("manualUploadMessage");if(x){x.textContent=t||"";x.style.color=e?"var(--red)":"var(--muted)";}}
+async function renderManualPage(){if(!teamCloud.user){$("manualLoginNotice").style.display="block";$("manualUploadArea").style.display="none";$("manualFileList").innerHTML='<div class="empty">팀 로그인 후 공유 파일을 볼 수 있어.</div>';return;}$("manualLoginNotice").style.display="none";$("manualUploadArea").style.display="block";await loadTeamMeta();await loadManualFiles();}
+async function loadManualFiles(){if(!teamCloud.user)return;const[{data:f,error:fe},{data:m,error:me}]=await Promise.all([teamCloud.client.from("team_files").select("id,uploader_id,file_name,storage_path,file_size,mime_type,category,note,created_at").order("created_at",{ascending:false}),teamCloud.client.from("profiles").select("user_id,display_name")]);if(fe||me){$("manualFileList").innerHTML='<div class="empty">공유 파일을 불러오지 못했어. v12 SQL 업데이트를 확인해줘.</div>';return;}teamCloud.teamFiles=f||[];const mm=new Map((m||[]).map(x=>[x.user_id,x.display_name])),list=$("manualFileList");list.innerHTML="";if(!f?.length){list.innerHTML='<div class="empty">아직 공유된 파일이 없어.</div>';return;}f.forEach(x=>{const can=x.uploader_id===teamCloud.user.id||teamCloud.isPayrollManager,d=document.createElement("div");d.className="file-item";d.innerHTML=`<div><div class="file-name">${escapeHtml(x.file_name)}</div><div class="file-meta">${escapeHtml(x.note||"설명 없음")}</div></div><span class="file-category">${escapeHtml(x.category||"기타")}</span><div class="file-meta">${escapeHtml(mm.get(x.uploader_id)||"팀원")}</div><div class="file-meta">${formatFileSize(x.file_size)}<br>${new Date(x.created_at).toLocaleDateString("ko-KR")}</div><div class="file-actions"><button class="mini-btn" data-download="${x.id}">다운로드</button>${can?`<button class="mini-btn danger" data-delete="${x.id}">삭제</button>`:""}</div>`;list.appendChild(d);});list.querySelectorAll("[data-download]").forEach(b=>b.addEventListener("click",()=>downloadManualFile(Number(b.dataset.download))));list.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteManualFile(Number(b.dataset.delete))));}
+async function uploadManualFile(){if(!teamCloud.user)return;const i=$("manualFileInput"),f=i.files?.[0];if(!f){setManualMessage("파일을 선택해줘.",true);return;}if(f.size>50*1024*1024){setManualMessage("파일은 50MB 이하로 올려줘.",true);return;}const b=$("uploadManualFile");b.disabled=true;b.textContent="업로드 중...";const safe=f.name.replace(/[^\w.\-가-힣() ]+/g,"_"),rnd=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2),path=`${teamCloud.user.id}/${Date.now()}-${rnd}-${safe}`;const{error:ue}=await teamCloud.client.storage.from("team-documents").upload(path,f,{upsert:false,contentType:f.type||"application/octet-stream"});if(ue){setManualMessage("업로드에 실패했어.",true);b.disabled=false;b.textContent="파일 업로드";return;}const{error:me}=await teamCloud.client.from("team_files").insert({uploader_id:teamCloud.user.id,file_name:f.name,storage_path:path,file_size:f.size,mime_type:f.type||"",category:$("manualFileCategory").value||"기타",note:$("manualFileNote").value.trim()});if(me){await teamCloud.client.storage.from("team-documents").remove([path]);setManualMessage("파일 정보 저장에 실패했어.",true);}else{i.value="";$("manualFileNote").value="";setManualMessage(`${f.name} 업로드 완료!`);await loadManualFiles();}b.disabled=false;b.textContent="파일 업로드";}
+async function downloadManualFile(id){const f=teamCloud.teamFiles.find(x=>x.id===id);if(!f)return;const{data:b,error:e}=await teamCloud.client.storage.from("team-documents").download(f.storage_path);if(e){alert("다운로드 실패");return;}const u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=f.file_name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+async function deleteManualFile(id){const f=teamCloud.teamFiles.find(x=>x.id===id);if(!f||!confirm(`${f.file_name} 파일을 삭제할까?`))return;const{error:e}=await teamCloud.client.storage.from("team-documents").remove([f.storage_path]);if(e){alert("파일 삭제 실패");return;}await teamCloud.client.from("team_files").delete().eq("id",id);await loadManualFiles();}
+
 function startOfWeek(dateValue){
   const d=new Date(dateValue);
   d.setHours(0,0,0,0);
@@ -2058,7 +2209,7 @@ function weeklyLogCellHtml(log){
   }
 
   if(log.work_status && log.work_status!=="정상근무"){
-    const status=log.work_status==="연차"?"하루 연차":log.work_status;
+    const status=leaveStatusLabel(log.work_status);
     parts.push(`<span class="weekly-status">${escapeHtml(status)}</span>`);
   }
 
@@ -2275,6 +2426,7 @@ async function initTeamCloud(){
 
   if(teamCloud.user){
     await syncMyCloudProfile();
+    await loadTeamMeta();
     await loadMyLoggedDates(viewDate.getFullYear());
     const sourceMonth=payrollOvertimeMonth();
     if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
@@ -2289,6 +2441,7 @@ async function initTeamCloud(){
     updateGlobalAuthUi();
     if(teamCloud.user){
       await syncMyCloudProfile();
+      await loadTeamMeta();
       await loadMyLoggedDates(viewDate.getFullYear());
       const sourceMonth=payrollOvertimeMonth();
       if(sourceMonth.getFullYear()!==viewDate.getFullYear()){
@@ -2536,7 +2689,7 @@ function renderAnnualCalendar(){
         const summary=getMyDailySummary(key);
         const bits=[];
         if(Number(summary.overtime_hours)>0) bits.push(`야근 ${formatHours(summary.overtime_hours)}h`);
-        if(["연차","오전연차","오후연차"].includes(summary.work_status)) bits.push(summary.work_status==="연차"?"하루 연차":summary.work_status);
+        if(leaveDaysForCategory(summary.work_status)>0) bits.push(leaveStatusLabel(summary.work_status));
         day.title=[getHoliday(key),...bits].filter(Boolean).join(" · ");
       }
       if(d.getMonth()===month && isPaydayDate(d)){
@@ -2626,10 +2779,10 @@ function renderCalendar(){
         cell.appendChild(c);
       }
 
-      if(["연차","오전연차","오후연차"].includes(summary.work_status)){
+      if(leaveDaysForCategory(summary.work_status)>0){
         const c=document.createElement("div");
         c.className="chip note";
-        c.textContent=summary.work_status==="연차"?"하루 연차":summary.work_status;
+        c.textContent=leaveStatusLabel(summary.work_status);
         cell.appendChild(c);
       }
 
@@ -2664,8 +2817,13 @@ function renderAll(){
   if(dailyPage?.classList.contains("active")) renderDailyLogPage();
   const weeklyPage=$("weeklyLogPage");
   if(weeklyPage?.classList.contains("active")) renderWeeklyLogPage();
+  const manualPage=$("manualPage");
+  if(manualPage?.classList.contains("active")) renderManualPage();
+  const salaryPage=$("salaryPage");
+  if(salaryPage?.classList.contains("active")) loadPayrollManagerPanel();
 }
 
+if($("leaveRequestDate")&&!$("leaveRequestDate").value)$("leaveRequestDate").value=dateKey(new Date());
 $("saveLeaveSettings").addEventListener("click",()=>{
   data.settings.totalAnnualLeave=Number($("totalAnnualLeave").value||0);
   persist();
@@ -2695,6 +2853,7 @@ $("saveSettings").addEventListener("click",()=>{
   persist();
   renderAll();
   updateBranding();
+  if(teamCloud.user) syncMySalaryProfile().then(()=>{if(teamCloud.isPayrollManager)loadPayrollManagerPanel();});
   alert("급여·공제·퇴직연금 설정을 저장했어.");
 });
 
@@ -2854,6 +3013,15 @@ function closeProfileModal(){
 }
 
 
+
+$("teamInfoBtn").addEventListener("click",openTeamModal);
+$("closeTeamModal").addEventListener("click",closeTeamModal);
+$("teamModal").addEventListener("click",e=>{if(e.target===$("teamModal"))closeTeamModal();});
+$("saveTeamName").addEventListener("click",async()=>{if(!teamCloud.user||!teamCloud.isPayrollManager)return;const n=$("teamNameInput").value.trim();if(!n)return;const{error:e}=await teamCloud.client.from("team_settings").update({team_name:n,updated_at:new Date().toISOString(),updated_by:teamCloud.user.id}).eq("id",1);if(e){alert("팀 이름 저장 실패");return;}teamCloud.teamName=n;updateTeamInfoButton();await openTeamModal();});
+$("uploadManualFile").addEventListener("click",uploadManualFile);
+$("refreshManualFiles").addEventListener("click",loadManualFiles);
+$("submitLeaveRequest").addEventListener("click",submitLeaveRequest);
+
 $("globalAuthBtn").addEventListener("click",openLoginModal);
 $("closeLoginModal").addEventListener("click",closeLoginModal);
 
@@ -2905,9 +3073,10 @@ $("saveProfile").addEventListener("click",()=>{
   updateBranding();
   closeProfileModal();
   if(teamCloud.user){
-    syncMyCloudProfile().then(()=>{
+    Promise.all([syncMyCloudProfile(),syncMySalaryProfile(),loadTeamMeta()]).then(()=>{
       if($("dailyLogPage")?.classList.contains("active")) renderDailyLogPage();
       if($("weeklyLogPage")?.classList.contains("active")) renderWeeklyLogPage();
+      if($("salaryPage")?.classList.contains("active")) loadPayrollManagerPanel();
     });
   }
 });
@@ -2945,8 +3114,12 @@ document.querySelectorAll(".top-tab").forEach(btn=>{
 
     if(pageId==="dailyLogPage") await renderDailyLogPage();
     if(pageId==="weeklyLogPage") await renderWeeklyLogPage();
+    if(pageId==="manualPage") await renderManualPage();
+    if(pageId==="leavePage" && teamCloud.configured && teamCloud.user) await loadLeaveRequests();
 
     if(pageId==="salaryPage" && teamCloud.configured && teamCloud.user){
+      await loadTeamMeta();
+      await loadPayrollManagerPanel();
       const sourceMonth=payrollOvertimeMonth();
       await loadMyLoggedDates(sourceMonth.getFullYear());
       renderSummary();
@@ -2956,7 +3129,7 @@ document.querySelectorAll(".top-tab").forEach(btn=>{
 });
 
 const lastPage=localStorage.getItem("myCompanyDashboard_lastPage");
-if(["annualPage","schedulePage","dailyLogPage","weeklyLogPage","salaryPage","leavePage"].includes(lastPage)){
+if(["annualPage","schedulePage","dailyLogPage","weeklyLogPage","manualPage","salaryPage","leavePage"].includes(lastPage)){
   const savedBtn=document.querySelector(`[data-page="${lastPage}"]`);
   if(savedBtn) savedBtn.click();
 }else{
